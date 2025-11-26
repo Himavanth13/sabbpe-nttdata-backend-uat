@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NTT DATA Payment Test</title>
+
+    <script src="https://pgtest.atomtech.in/staticdata/ots/js/atomcheckout.js"></script>
+</head>
+<body>
+<h2>Test Payment</h2>
+<button onclick="startPayment()">Pay Now</button>
+
+<script>
+    async function startPayment() {
+        try {
+            const backendUrl = "http://localhost:8080/api/initiatetransaction";
+
+            const payload = {
+                "payInstrument": {
+                    "Extras": {
+                        "udf1": "-",
+                        "udf2": "-",
+                        "udf3": "-",
+                        "udf4": "-",
+                        "udf5": "-"
+                    },
+                    "PayDetails": {
+                        "amount": 1,
+                        "product": "NSE",
+                        "custAccNo": "",
+                        "txnCurrency": "INR"
+                    },
+                    "CustDetails": {
+                        "custEmail": "testuser@nttdata.com",
+                        "custMobile": "9797979797"
+                    },
+                    "HeadDetails": {
+                        "api": "AUTH",
+                        "version": "OTSv1.1",
+                        "platform": "FLASH"
+                    },
+                    "MerchDetails": {
+                        "userId": "446442",
+                        "merchId": "446442",
+                        "password": "Test@123",
+                        "merchTxnId": "TXN123456789",
+                        "merchTxnDate": "2025-02-26 18:45:00"
+                    },
+                    "PayModeSpecificData": {
+                        "subChannel": null
+                    }
+                }
+            };
+
+            const response = await fetch(backendUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            console.log("Backend Response:", data);
+
+            if (data.responseDetails?.txnStatusCode !== "OTS0000") {
+                alert("Payment initiation failed: " + data.responseDetails?.txnDescription);
+                return;
+            }
+
+            const options = {
+                atomTokenId: data.atomTokenId,
+                merchId: "446442",
+                custEmail: "testuser@nttdata.com",
+                custMobile: "9797979797",
+                returnUrl: "http://localhost:8080/api/initiatetransaction"
+            };
+
+            console.log("Calling AtomPaynetz with options:", options);
+
+            let atom = new AtomPaynetz(options, 'uat');
+
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Request failed — check console");
+        }
+    }
+</script>
+
+</body>
+</html>
