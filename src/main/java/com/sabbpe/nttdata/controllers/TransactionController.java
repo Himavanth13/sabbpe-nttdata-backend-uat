@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TransactionController {
     private final TransactionService transactionService;
 
-    @PostMapping("/initiateTransaction")
+    @PostMapping("/initiatetransaction")
     public TransactionSuccessResponse initiate(@RequestBody TransactionRequest request) {
         return transactionService.initiate(request);
     }
