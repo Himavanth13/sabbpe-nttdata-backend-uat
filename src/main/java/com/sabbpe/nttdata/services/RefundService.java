@@ -31,7 +31,7 @@ public class RefundService {
             throw new IllegalArgumentException("Invalid refund request structure");
         }
 
-
+        log.info("Refund Request payload : {}",request);
         // 2. Generate SIGNATURE dynamically (DO NOT hardcode)
         Integer merchId=request.getPayInstrument().getMerchDetails().getMerchId();
         String merchTxnId=request.getPayInstrument().getMerchDetails().getMerchTxnId();
@@ -41,13 +41,16 @@ public class RefundService {
         //"317159Test@123111121685555100.25INRREFUNDINIT"
         String raw= merchId+password+merchTxnId+amoutn+"INRREFUNDINIT";
         String signature = nttCrypto.generateRequestSignature(raw);
+
         log.info("signature "+signature.toLowerCase());
+
         request.getPayInstrument()
                 .getPayDetails()
                 .setSignature(signature.toLowerCase());
 
         //  3. Encrypt the payload
         String encryptedPayload = nttCrypto.encryptRequest(request);
+        log.info("encrypted payload : {}",encryptedPayload);
 
         Integer merchantId =
                 request.getPayInstrument()

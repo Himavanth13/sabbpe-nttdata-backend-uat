@@ -4,6 +4,7 @@ import com.sabbpe.nttdata.dtos.TransactionRequest;
 import com.sabbpe.nttdata.dtos.TransactionSuccessResponse;
 import com.sabbpe.nttdata.utils.NttCrypto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
@@ -28,11 +30,14 @@ public class TransactionService {
     public TransactionSuccessResponse initiate(TransactionRequest request) {
 
         try {
+            log.info("Transaction Request payload: {}",request);
             // 🔐 Step 1: Encrypt request JSON
             String encData = nttCrypto.encryptRequest(request);
 
+            log.info("encrypted data : {}",encData);
             String form = "encData=" + URLEncoder.encode(encData, StandardCharsets.UTF_8)
                     + "&merchId=" + merchId;
+            log.info("prepared url : {}",form);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

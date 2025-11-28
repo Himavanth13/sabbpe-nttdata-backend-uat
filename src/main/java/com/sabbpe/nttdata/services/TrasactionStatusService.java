@@ -25,7 +25,7 @@ public class TrasactionStatusService {
     private String TRASACTION_STATUS_URL;
 
     public String transactionStatusPayload(TransactionStatusRequest request) {
-        log.info("request payload : {}",request);
+        log.info("TransactionStatus Request payload : {}",request);
 //        [merchID +
 //                Password +
 //                merchTxnID +
@@ -83,16 +83,11 @@ public class TrasactionStatusService {
         log.info("REFUND API STATUS  = {}", response.getStatusCode());
         log.info("REFUND API BODY    = {}", response.getBody());
         String res=response.getBody();
-//        if(res!=null && res.contains("encData")) {
-//            String input = response.getBody();
-//            int start = input.indexOf("encData=") + "encData=".length();
-//            int end = input.indexOf("&merchId");
-//
-//            String encData = input.substring(start, end);
-//            return nttCrypto.decryptResponse(encData);
-//        }
+
         try {
-            return nttCrypto.decryptResponse(res);
+            String decrypted= nttCrypto.decryptResponse(res);
+            log.info("decrypted transaction Status : {}",decrypted);
+            return decrypted;
         }catch (Exception e) {
 
             log.info("invalid response to decrypt");
