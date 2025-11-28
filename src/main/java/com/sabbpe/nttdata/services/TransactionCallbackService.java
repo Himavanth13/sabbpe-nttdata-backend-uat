@@ -1,22 +1,23 @@
-package com.sabbpe.nttdata.controllers;
+package com.sabbpe.nttdata.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sabbpe.nttdata.dtos.TransactionCallbackResponse;
 import com.sabbpe.nttdata.utils.NttCrypto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
-@RestController
-@RequestMapping("/api/v1")
-@RequiredArgsConstructor
+@Service
 @Slf4j
-public class TrasactionCallbackController {
-
+@RequiredArgsConstructor
+public class TransactionCallbackService {
     private final NttCrypto nttCrypto;
-    @PostMapping("/initiatepaymentcallback")
-    public ResponseEntity<String> handleCallback(@RequestParam("encData") String encData) {
+
+    @Value("${ndps.trxcallbackurlpage}")
+    private String FRONTEND_URL;
+
+    public String callback(String encData) {
         try {
             log.info(" CALLBACK RECEIVED");
             log.info("enc callback data : {}", encData);
@@ -85,17 +86,21 @@ public class TrasactionCallbackController {
 
             // ✅ Signature Validation
             if (!generatedResponseSignature.equals(responseSignature)) {
-                log.error("❌ Callback signature INVALID");
-                return ResponseEntity.badRequest().body("INVALID SIGNATURE");
+                log.error(" Callback signature INVALID");
+                return "redirect:" + FRONTEND_URL + "/payment-result?error=invalid_signature";
             }
 
             log.info(" Callback signature VALID");
-            return ResponseEntity.ok("SUCCESS");
+//            String redirecturl = UriComponentsBuilder.fromUriString(FRONTEND_URL)
+//                    .queryParam("merchId", merchId)
+//                    .build()
+//                    .encode()
+//                    .toUriString();
+            return "redirect:" + FRONTEND_URL + "/payment-result?txnId=" + merchTxnId;
 
         } catch (Exception e) {
             log.error(" CALLBACK PROCESSING FAILED", e);
-            return ResponseEntity.internalServerError().body("FAILED");
+            return "redirect:" + FRONTEND_URL + "/payment-result?error=invalid_signature";
         }
     }
-
 }
