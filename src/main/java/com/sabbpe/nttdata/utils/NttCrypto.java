@@ -1,10 +1,11 @@
 package com.sabbpe.nttdata.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sabbpe.nttdata.dtos.TransactionCallbackResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.Mac;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
@@ -70,24 +71,82 @@ public class NttCrypto {
         }
     }
 
-    /** 🔓 Decrypt NDPS encrypted response */
+
     public <T> T decryptResponse(String hexString, Class<T> clazz) {
         try {
             byte[] encrypted = hexToBytes(hexString);
+
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE,
-                    new SecretKeySpec(derivedResKey, "AES"), new IvParameterSpec(iv));
+                    new SecretKeySpec(derivedResKey, "AES"),
+                    new IvParameterSpec(iv));
 
             byte[] decrypted = cipher.doFinal(encrypted);
             String json = new String(decrypted, StandardCharsets.UTF_8);
-            return objectMapper.readValue(json, clazz);
-        } catch (Exception e) {
-            throw new RuntimeException("Decryption failed", e);
+
+            try {
+                return objectMapper.readValue(json, clazz);
+            } catch (Exception mappingError) {
+                throw new RuntimeException("JSON Mapping failed: " + json, mappingError);
+            }
+
+        } catch (Exception cryptoError) {
+            throw new RuntimeException("AES Decryption failed", cryptoError);
         }
     }
 
+    public String decryptResponse(String hexString) throws Exception {
+        try {
+            byte[] encrypted = hexToBytes(hexString);
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(
+                    Cipher.DECRYPT_MODE,
+                    new SecretKeySpec(derivedResKey, "AES"),
+                    new IvParameterSpec(iv)
+            );
+
+            byte[] decrypted = cipher.doFinal(encrypted);
+            return new String(decrypted, StandardCharsets.UTF_8);
+
+        } catch (Exception e) {
+            throw new RuntimeException("AES Decryption failed", e);
+        }
+    }
+
+
+
+//    /** 🔓 Decrypt NDPS encrypted response */
+//    public <T> T decryptResponse(String hexString, Class<T> clazz) {
+//        try {
+//            byte[] encrypted = hexToBytes(hexString);
+//            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+//            cipher.init(Cipher.DECRYPT_MODE,
+//                    new SecretKeySpec(derivedResKey, "AES"), new IvParameterSpec(iv));
+//
+//            byte[] decrypted = cipher.doFinal(encrypted);
+//            String json = new String(decrypted, StandardCharsets.UTF_8);
+//            return objectMapper.readValue(json, clazz);
+//        } catch (Exception e) {
+//            throw new RuntimeException("Decryption failed", e);
+//        }
+//    }
+
     /** 🧾 Status API HMAC Signature */
-    public String generateStatusSignature(String merchId, String merchTxnId, double amount, String currency) {
+    public String generateResSignature(String merchId, String merchTxnId, double amount, String currency) {
+        try {
+            String formattedAmount = String.format("%.2f", amount);
+            String raw = merchId + merchTxnId + formattedAmount + currency;
+            Mac sha512_HMAC = Mac.getInstance("HmacSHA512");
+            sha512_HMAC.init(new SecretKeySpec(resHashKey.getBytes(), "HmacSHA512"));
+            return bytesToHex(sha512_HMAC.doFinal(raw.getBytes())).toUpperCase();
+        } catch (Exception e) {
+            throw new RuntimeException("Status signature failed", e);
+        }
+    }
+
+
+    public String generateReqSignature(String merchId, String merchTxnId, double amount, String currency) {
         try {
             String formattedAmount = String.format("%.2f", amount);
             String raw = merchId + merchTxnId + formattedAmount + currency;
@@ -98,6 +157,33 @@ public class NttCrypto {
             throw new RuntimeException("Status signature failed", e);
         }
     }
+//MerchId+Transaction Password+MerchTxnID+Amount+Currency+ API
+    public String generateRequestSignature(String raw) {
+        try {
+//            String formattedAmount = String.format("%.2f", amount);
+//            String raw = merchId + merchTxnId + formattedAmount + currency;
+            Mac sha512_HMAC = Mac.getInstance("HmacSHA512");
+            sha512_HMAC.init(new SecretKeySpec(reqHashKey.getBytes(), "HmacSHA512"));
+            return bytesToHex(sha512_HMAC.doFinal(raw.getBytes())).toUpperCase();
+        } catch (Exception e) {
+            throw new RuntimeException("Status signature failed", e);
+        }
+    }
+
+    public String generateResponseSignature(String raw) {
+
+        try {
+//            String formattedAmount = String.format("%.2f", amount);
+//            String raw = merchId + merchTxnId + formattedAmount + currency;
+            Mac sha512_HMAC = Mac.getInstance("HmacSHA512");
+            sha512_HMAC.init(new SecretKeySpec(resHashKey.getBytes(), "HmacSHA512"));
+            return bytesToHex(sha512_HMAC.doFinal(raw.getBytes())).toUpperCase();
+        } catch (Exception e) {
+            throw new RuntimeException("Status signature failed", e);
+        }
+
+    }
+
 
     /** 🛡 Callback signature verification */
     public boolean verifyCallbackSignature(String calculated, String received) {
@@ -119,4 +205,77 @@ public class NttCrypto {
                     + Character.digit(hex.charAt(i + 1), 16));
         return out;
     }
+
+//========================================================================================================================
+
+
+
+    public boolean validateCallbackSignature(TransactionCallbackResponse callback) {
+        try {
+            // Extract and format fields
+            String merchId = String.valueOf(callback.getPayInstrument().getMerchDetails().getMerchId());
+            String merchTxnId = String.valueOf(callback.getPayInstrument().getMerchDetails().getMerchTxnId());
+
+            // ✅ CRITICAL: Format amount with 2 decimals
+            double amountValue = callback.getPayInstrument().getPayDetails().getAmount();
+            String amount = String.format("%.2f", amountValue);
+
+            String currency = callback.getPayInstrument().getPayDetails().getTxnCurrency();
+
+            // Build raw string
+            String rawData =  merchId+merchTxnId + amount + currency;
+
+            // Generate HMAC-SHA512 signature
+            String generatedSignature = generateCallbackSignatureHMAC(rawData);
+            String receivedSignature = callback.getPayInstrument().getPayDetails().getSignature();
+            log.info("generatedSignature :"+generatedSignature);
+            log.info("recieved signature :"+receivedSignature);
+
+            return generatedSignature.equalsIgnoreCase(receivedSignature);
+
+        } catch (Exception e) {
+            log.error("❌ Callback signature verification failed", e);
+            return false;
+        }
+    }
+
+    private String generateCallbackSignatureHMAC(String rawData) {
+        try {
+            Mac hmacSha512 = Mac.getInstance("HmacSHA512");
+            SecretKeySpec secretKey = new SecretKeySpec(
+                    resHashKey.getBytes(StandardCharsets.UTF_8),
+                    "HmacSHA512"
+            );
+            hmacSha512.init(secretKey);
+            byte[] signature = hmacSha512.doFinal(rawData.getBytes(StandardCharsets.UTF_8));
+            return bytesToHex(signature).toUpperCase();
+        } catch (Exception e) {
+            throw new RuntimeException("HMAC-SHA512 signature generation failed", e);
+        }
+    }
+
+
+
+    private String encryptAESHex(String data, byte[] key, byte[] iv) throws Exception {
+
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+
+        cipher.init(
+                Cipher.ENCRYPT_MODE,
+                new SecretKeySpec(key, "AES"),
+                new IvParameterSpec(iv)
+        );
+
+        byte[] encrypted = cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
+
+        return bytesToHex(encrypted);
+    }
+
+//    private String bytesToHex(byte[] bytes) {
+//        StringBuilder sb = new StringBuilder();
+//        for (byte b : bytes) {
+//            sb.append(String.format("%02X", b));
+//        }
+//        return sb.toString();
+//    }
 }
