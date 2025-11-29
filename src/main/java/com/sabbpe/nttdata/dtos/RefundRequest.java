@@ -66,7 +66,7 @@ public class RefundRequest {
         private Long atomTxnId;
 
         @JsonProperty("totalRefundAmount")
-        private Double totalRefundAmount;   // ✅ FIXED (was Integer)
+        private Double totalRefundAmount;
 
         @JsonProperty("txnCurrency")
         private String txnCurrency;

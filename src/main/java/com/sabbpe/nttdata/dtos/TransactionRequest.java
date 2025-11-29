@@ -1,8 +1,15 @@
 package com.sabbpe.nttdata.dtos;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TransactionRequest {
 
     private PayInstrument payInstrument = new PayInstrument();
@@ -49,10 +56,14 @@ public class TransactionRequest {
 
     @Data
     public static class MerchDetails {
-        private String userId;                       // OPTIONAL
-        private String merchId;                 // ALWAYS SAME (replace with your real MID)
-        private String password;            // ALWAYS SAME (replace with your NDPS password)
-        private String merchTxnId;                          // MUST CHANGE EVERY TIME (unique)
+
+        private String userId="446442";                       // OPTIONAL
+
+        private String merchId="446442";                 // ALWAYS SAME (replace with your real MID)
+        private String password="Test@123";            // ALWAYS SAME (replace with your NDPS password)
+        private String merchTxnId= "TXN"
+                + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"))
+                + ThreadLocalRandom.current().nextInt(1000, 9999);                        // MUST CHANGE EVERY TIME (unique)
         private String merchTxnDate;                        // MUST CHANGE EVERY TIME (yyyy-MM-dd HH:mm:ss)
     }
 

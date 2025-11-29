@@ -85,9 +85,21 @@ public class TrasactionStatusService {
         String res=response.getBody();
 
         try {
-            String decrypted= nttCrypto.decryptResponse(res);
-            log.info("decrypted transaction Status : {}",decrypted);
-            return decrypted;
+            if(res!=null && res.contains("encData")) {
+                String input = response.getBody();
+                int start = input.indexOf("encData=") + "encData=".length();
+                int end = input.indexOf("&merchId");
+
+                String encData = input.substring(start, end);
+                String decrypted = nttCrypto.decryptResponse(encData);
+                log.info("decrypted transaction Status : {}", decrypted);
+                return decrypted;
+            }
+//            else {
+//                String decrypted = nttCrypto.decryptResponse(res);
+//                log.info("decrypted transaction Status : {}", decrypted);
+//                return decrypted;
+//            }
         }catch (Exception e) {
 
             log.info("invalid response to decrypt");

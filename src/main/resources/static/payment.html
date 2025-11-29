@@ -15,6 +15,15 @@
         try {
             const backendUrl = "http://localhost:8080/api/initiatetransaction";
 
+                var dt = new Date().getTime();
+            	var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+								.replace(/[xy]/g, function(c) {
+									var r = (dt + Math.random() * 16) % 16 | 0;
+									dt = Math.floor(dt / 16);
+									return (c == 'x' ? r : (r & 0x3 | 0x8))
+											.toString(16);
+								});
+
             const payload = {
                 "payInstrument": {
                     "Extras": {
@@ -25,29 +34,29 @@
                         "udf5": "-"
                     },
                     "PayDetails": {
-                        "amount": 1.12,
-                        "product": "NSE",
-                        "custAccNo": "",
-                        "txnCurrency": "INR"
+                        "amount": 1.12
+<!--                        "product": "NSE",-->
+<!--                        "custAccNo": "",-->
+<!--                        "txnCurrency": "INR"-->
                     },
                     "CustDetails": {
                         "custEmail": "testuser@nttdata.com",
                         "custMobile": "9797979797"
                     },
                     "HeadDetails": {
-                        "api": "AUTH",
-                        "version": "OTSv1.1",
-                        "platform": "FLASH"
+<!--                        "api": "AUTH",-->
+<!--                        "version": "OTSv1.1",-->
+<!--                        "platform": "FLASH"-->
                     },
                     "MerchDetails": {
-                        "userId": "446442",
-                        "merchId": "446442",
-                        "password": "Test@123",
-                        "merchTxnId": "TXN123456789",
+<!--                        "userId": "446442",-->
+<!--                        "merchId": "446442",-->
+<!--                        "password": "Test@123",-->
+                        "merchTxnId": uuid,
                         "merchTxnDate": "2025-02-26 18:45:00"
                     },
                     "PayModeSpecificData": {
-                        "subChannel": null
+<!--                        "subChannel": null-->
                     }
                 }
             };
