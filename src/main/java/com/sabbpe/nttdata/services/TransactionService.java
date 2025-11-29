@@ -152,7 +152,7 @@ public class TransactionService {
 
 // ✅ Now safely add your new field
             objectNode.put(
-                    "merchantTxnId",
+                    "merchTxnId",
                     request.getPayInstrument().getMerchDetails().getMerchTxnId()
             );
 
