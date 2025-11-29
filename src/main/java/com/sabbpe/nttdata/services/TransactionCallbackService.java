@@ -49,7 +49,7 @@ public class TransactionCallbackService {
             String merchId = String.valueOf(payInstrument.getMerchDetails().getMerchId());
             String atomTxnId = String.valueOf(payInstrument.getPayDetails().getAtomTxnId());
             String merchTxnId = payInstrument.getMerchDetails().getMerchTxnId();
-            String totalAmount = String.valueOf(payInstrument.getPayDetails().getTotalAmount());
+            String totalAmount = String.format("%.2f", payInstrument.getPayDetails().getTotalAmount());
             String txnStatusCode = payInstrument.getResponseDetails().getStatusCode();
 
             // ✅ Safe subChannel
