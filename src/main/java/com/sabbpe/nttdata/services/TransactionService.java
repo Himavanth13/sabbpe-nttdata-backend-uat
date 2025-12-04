@@ -39,7 +39,7 @@ public class TransactionService {
     @Value("${ndps.auth-url}")
     private String authUrl;
 
-    @Value("${ndps.merchId}")
+    @Value("${ndps.merch-id}")
     private String merchId;
 
     public TransactionSuccessResponse initiate(TransactionRequest request) {
@@ -47,9 +47,6 @@ public class TransactionService {
         try {
 
             Transaction txn = new Transaction();
-
-// ✅ Store FULL REQUEST JSON
-
 
             txn.setClientId(request.getPayInstrument()
                     .getMerchDetails()

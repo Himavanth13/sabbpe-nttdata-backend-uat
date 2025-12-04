@@ -36,7 +36,8 @@ public class TransactionRequest {
     @Data
     public static class PayDetails {
         private Double amount;                             // MUST CHANGE EVERY TIME
-        private String product = "NSE";                     // ALWAYS SAME (replace if NDPS gives different)
+//        private String product = "NSE";
+        private String product = "ONE78";
         private String custAccNo;                   // TPV only → null for normal merchants
         private String txnCurrency = "INR";                 // ALWAYS SAME
     }
@@ -57,10 +58,14 @@ public class TransactionRequest {
     @Data
     public static class MerchDetails {
 
-        private String userId="446442";                       // OPTIONAL
+//        private String userId="446442";
+        private String userId="770226";
 
-        private String merchId="446442";                 // ALWAYS SAME (replace with your real MID)
-        private String password="Test@123";            // ALWAYS SAME (replace with your NDPS password)
+//        private String merchId="446442";
+        private String merchId="770226";
+
+//        private String password="Test@123";            // ALWAYS SAME (replace with your NDPS password)
+        private String password="770226_titan@123";            // ALWAYS SAME (replace with your NDPS password)
         private String merchTxnId= "TXN"
                 + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"))
                 + ThreadLocalRandom.current().nextInt(1000, 9999);                        // MUST CHANGE EVERY TIME (unique)
