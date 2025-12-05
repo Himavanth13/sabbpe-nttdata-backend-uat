@@ -1,9 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>NTT DATA Payment Test</title>
-
     <script src="https://pgtest.atomtech.in/staticdata/ots/js/atomcheckout.js"></script>
 </head>
 <body>
@@ -15,51 +15,45 @@
         try {
             const backendUrl = "http://localhost:8080/api/initiatetransaction";
 
-                var dt = new Date().getTime();
-            	var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-								.replace(/[xy]/g, function(c) {
-									var r = (dt + Math.random() * 16) % 16 | 0;
-									dt = Math.floor(dt / 16);
-									return (c == 'x' ? r : (r & 0x3 | 0x8))
-											.toString(16);
-								});
+            let dt = new Date().getTime();
+            let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                let r = (dt + Math.random() * 16) % 16 | 0;
+                dt = Math.floor(dt / 16);
+                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            });
 
             const payload = {
-                "payInstrument": {
-                    "Extras": {
-                        "udf1": "-",
-                        "udf2": "-",
-                        "udf3": "-",
-                        "udf4": "-",
-                        "udf5": "-"
+                payInstrument: {
+                    Extras: {
+                        udf1: "-",
+                        udf2: "-",
+                        udf3: "-",
+                        udf4: "-",
+                        udf5: uuid
                     },
-                    "PayDetails": {
-                        "amount": 1.12
-<!--                        "product": "NSE",-->
-<!--                        "custAccNo": "",-->
-<!--                        "txnCurrency": "INR"-->
+                    PayDetails: {
+                        amount: 1.12,   // ← COMMA IS IMPORTANT
+                        product: "NSE"
+
                     },
-                    "CustDetails": {
-                        "custEmail": "testuser@nttdata.com",
-                        "custMobile": "9797979797"
+                    CustDetails: {
+                        custEmail: "testuser@nttdata.com",
+                        custMobile: "9797979797"
                     },
-                    "HeadDetails": {
-<!--                        "api": "AUTH",-->
-<!--                        "version": "OTSv1.1",-->
-<!--                        "platform": "FLASH"-->
+                    MerchDetails: {
+                        userId: "998776",
+                        merchId: "665887",
+                        password: "Test@123456",
+                        merchTxnId: uuid,
+                        merchTxnDate: "2025-02-26 18:45:00"
                     },
-                    "MerchDetails": {
-<!--                        "userId": "446442",-->
-<!--                        "merchId": "446442",-->
-<!--                        "password": "Test@123",-->
-                        "merchTxnId": uuid,
-                        "merchTxnDate": "2025-02-26 18:45:00"
-                    },
-                    "PayModeSpecificData": {
-<!--                        "subChannel": null-->
+                    PayModeSpecificData: {
+                        subChannel: "DC"
                     }
                 }
             };
+
+            console.log("payload =>", payload); // NOW IT WILL PRINT
 
             const response = await fetch(backendUrl, {
                 method: "POST",
@@ -68,7 +62,7 @@
             });
 
             const data = await response.json();
-            console.log("Backend Response:", data);
+            console.log("Backend Response =>", data);
 
             if (data.responseDetails?.txnStatusCode !== "OTS0000") {
                 alert("Payment initiation failed: " + data.responseDetails?.txnDescription);
@@ -83,9 +77,9 @@
                 returnUrl: "http://localhost:8080/api/v1/initiatepaymentcallback"
             };
 
-            console.log("Calling AtomPaynetz with options:", options);
+            console.log("Calling AtomPaynetz with options =>", options);
 
-            let atom = new AtomPaynetz(options, 'uat');
+            new AtomPaynetz(options, 'uat');
 
         } catch (error) {
             console.error("Error:", error);
