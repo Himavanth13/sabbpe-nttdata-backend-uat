@@ -41,6 +41,8 @@ public class TransactionCallbackService {
             TransactionCallbackResponse response =
                     objectMapper.readValue(decryptedJson, TransactionCallbackResponse.class);
 
+            String decrypedResponse = objectMapper.writeValueAsString(response);
+            log.info("decrypted response : {}",decrypedResponse);
             String transactionId =response.getPayInstrument().getExtras().getUdf1();
 
             TransactionCallbackResponse.PayInstrument payInstrument = response.getPayInstrument();
