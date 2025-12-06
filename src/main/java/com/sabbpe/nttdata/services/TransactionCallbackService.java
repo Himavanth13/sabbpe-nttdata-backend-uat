@@ -36,6 +36,8 @@ public class TransactionCallbackService {
             log.info("Decrypted callback JSON: {}", decryptedJson);
 
             ObjectMapper objectMapper = new ObjectMapper();
+            String json=objectMapper.writeValueAsString(decryptedJson);
+            log.info("without mapping decrypted json : {}",json);
 
             // ✅ Parse JSON to DTO
             TransactionCallbackResponse response =

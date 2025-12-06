@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class TransactionController {
     private final TransactionService transactionService;
 
-    @PostMapping("/initiatetransaction")
+    @PostMapping("/PaymentProcess")
     public TransactionSuccessResponse initiate(@RequestBody TransactionRequest request) {
         return transactionService.initiate(request);
     }

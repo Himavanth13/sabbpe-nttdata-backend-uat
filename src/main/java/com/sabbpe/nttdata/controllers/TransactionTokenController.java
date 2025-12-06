@@ -13,7 +13,7 @@ public class TransactionTokenController {
 
     private final TransactionTokenService transactionTokenService;
 
-    @PostMapping("/generate/transactiontoken")
+    @PostMapping("/generatetoken")
     public String generateTransactionToken(
             @RequestHeader("transaction_userid") String transactionUserId,
             @RequestHeader("transaction_merchantid") String transactionMerchantId,

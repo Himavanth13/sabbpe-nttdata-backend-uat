@@ -104,6 +104,7 @@ public class TransactionService {
     }
 
     public TransactionSuccessResponse initiate(TransactionRequest request) {
+        log.info("request : {} ",request);
 
         try {
             // 🔹 0a) Extract customer details from request JSON
@@ -121,6 +122,7 @@ public class TransactionService {
             }
 
             // 🔹 0b) Validate custEmail & custMobile against client_profile
+
             Map<String, Object> nttMapping =
                     clientProfileService.getNttMappingByCustomer(custEmail, custMobile);
 
@@ -144,6 +146,7 @@ public class TransactionService {
 
             // 🔹 0c) Replace NDPS/NTTDATA credentials in request JSON
             // 🔹 0c) Replace NDPS/NTTDATA credentials in request JSON
+
             MerchDetails merchDetails = request.getPayInstrument().getMerchDetails();
 
 // (Keep merchTxnId / merchTxnDate from incoming request)
