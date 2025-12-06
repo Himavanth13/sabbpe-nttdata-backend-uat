@@ -201,6 +201,7 @@ public class TransactionService {
             String jsonreq = objectMapper.writeValueAsString(request);
             txn.setRequestMetadata(jsonreq);
             transactionRepository.save(txn);
+            log.info("Transaction Request payload: {}", request);
 
             String uuid = txn.getTransactionId();
             request.getPayInstrument().getExtras().setUdf1(uuid);

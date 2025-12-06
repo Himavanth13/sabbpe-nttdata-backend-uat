@@ -1,0 +1,47 @@
+
+
+{
+  "client_Id": "0cf0232a-ea0f-4a11-b945-7077560558be",
+  "transaction_timestamp": "2025-12-06 12:18:45"
+}
+
+#################################################################################################
+
+
+
+{
+  "payInstrument": {
+    "extras": {
+      "udf1": "-",
+      "udf2": "-",
+      "udf3": "Sc2MaTT0/xrkzdGYr784QQ71uPxX7bITUeBRHM9hk5V8uOZeWCNTjOFQK7XBeVcv",
+      "udf4": "-",
+      "udf5": "-"
+    },
+    "payDetails": {
+      "amount": 100.50,
+      "product": "NSE",
+      "custAccNo": null,
+      "txnCurrency": "INR"
+    },
+    "custDetails": {
+      "custFirstName": "Sam M",
+      "custEmail": "mullangi.suman@gmail.com",
+      "custMobile": "9059672914"
+    },
+    "headDetails": {
+      "api": "AUTH",
+      "version": "OTSv1.1",
+      "platform": "FLASH"
+    },
+    "merchDetails": {
+      "userId": "665887",
+      "merchId": "998776",
+      "merchTxnId": "TXN202512061215000123",
+      "merchTxnDate": "2025-12-06 12:10:00"
+    },
+    "payModeSpecificData": {
+      "subChannel": "DC"
+    }
+  }
+}
