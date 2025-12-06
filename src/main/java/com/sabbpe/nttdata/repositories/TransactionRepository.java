@@ -1,22 +1,23 @@
 package com.sabbpe.nttdata.repositories;
 
-import com.sabbpe.nttdata.models.ClientProfile;
 import com.sabbpe.nttdata.models.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
-@RestController
+@Repository
 public interface TransactionRepository extends JpaRepository<Transaction, String> {
 
-
     Optional<Transaction> findByTransactionId(String transactionId);
+
     Optional<Transaction> findByTransactionIdAndMerchantOrderId(
             String transactionId,
             String merchantOrderId
     );
-    Optional<Transaction> findByClientId(String clientId);
-    Optional<Transaction> findByTransactionToken(String transactionToken);
 
+    List<Transaction> findByClientId(String clientId);
+
+    Optional<Transaction> findTopByTransactionTokenOrderByCreatedAtDesc(String transactionToken);
 }

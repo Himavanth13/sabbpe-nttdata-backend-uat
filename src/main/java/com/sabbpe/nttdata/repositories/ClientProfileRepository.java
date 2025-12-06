@@ -1,7 +1,6 @@
 package com.sabbpe.nttdata.repositories;
 
 import com.sabbpe.nttdata.models.ClientProfile;
-import com.sabbpe.nttdata.projection.ClientCryptoProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,26 +26,31 @@ public interface ClientProfileRepository extends JpaRepository<ClientProfile, St
     );
 
     @Query(value = """
-    SELECT 
-        transaction_userid AS transactionUserId,
-        transaction_merchantid AS transactionMerchantId,
-        transaction_password AS transactionPassword,
-        transaction_timestamp AS transactionTimestamp,
-        transaction_aes_key AS transactionAesKey,
-        transaction_iv AS transactionIv
-    FROM client_profile
-    WHERE transaction_userid = :transactionUserId
-      AND transaction_merchantid = :transactionMerchantId
-      AND transaction_password = :transactionPassword
-      AND transaction_timestamp = :transactionTimestamp
-    LIMIT 1
-    """, nativeQuery = true)
-    Map<String, Object> findOneExactAsMap(
-            @Param("transactionUserId") String transactionUserId,
-            @Param("transactionMerchantId") String transactionMerchantId,
-            @Param("transactionPassword") String transactionPassword,
-            @Param("transactionTimestamp") String transactionTimestamp
+        SELECT
+            transaction_userid   AS transactionUserId,
+            transaction_password AS transactionPassword,
+            transaction_aes_key  AS transactionAesKey,
+            transaction_iv       AS transactionIv
+        FROM client_profile
+        WHERE client_id = :clientId
+        """, nativeQuery = true)
+    Map<String, Object> getCryptoByClientId(@Param("clientId") String clientId);
+
+    // 🔹 NEW: find client + NTT credentials by customer email & mobile
+    @Query(value = """
+        SELECT
+            client_id    AS clientId,
+            client_email AS clientEmail,
+            client_mobile AS clientMobile,
+            ntt_userid   AS nttUserId,
+            ntt_password AS nttPassword,
+            ntt_merchantid AS nttMerchantId
+        FROM client_profile
+        WHERE client_email  = :custEmail
+          AND client_mobile = :custMobile
+        """, nativeQuery = true)
+    Map<String, Object> findNttMappingByCustomer(
+            @Param("custEmail") String custEmail,
+            @Param("custMobile") String custMobile
     );
-
-
 }
