@@ -1,9 +1,12 @@
 package com.sabbpe.nttdata.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sabbpe.nttdata.models.Transaction;
 import com.sabbpe.nttdata.repositories.TransactionRepository;
 import com.sabbpe.nttdata.utils.AESUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.ILoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,6 +15,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TransactionTokenService {
 
     private final ClientProfileService clientProfileService;
@@ -20,7 +24,7 @@ public class TransactionTokenService {
     private static final DateTimeFormatter TS_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public String encryptTransaction(
+    public String encryptTransaction( Map<String,Object> body,
             String transactionUserId,
             String transactionMerchantId,
             String clientId,
@@ -38,6 +42,7 @@ public class TransactionTokenService {
         String aesKey    = String.valueOf(keys.get("transactionAesKey"));
         String aesIv     = String.valueOf(keys.get("transactionIv"));
         String password  = String.valueOf(keys.get("transactionPassword"));
+
 
         // 2) Normalize timestamp
         LocalDateTime ldt = LocalDateTime.parse(transactionTimestamp, TS_FORMATTER);
@@ -58,7 +63,11 @@ public class TransactionTokenService {
         txn.setTransactionToken(encryptedToken);
 
         transactionRepository.save(txn);
-
+        body.put("transaction_token",encryptedToken);
+        ObjectMapper mapper = new ObjectMapper();
+        String prettyJson = mapper.writerWithDefaultPrettyPrinter()
+                .writeValueAsString(body);
+        log.info("generate token request payload : {}",prettyJson);
         // 6) Return token
         return encryptedToken;
     }

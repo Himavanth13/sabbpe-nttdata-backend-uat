@@ -22,10 +22,10 @@ public class TransactionController {
     @PostMapping("/PaymentProcess")
     public TransactionSuccessResponse initiate(@RequestBody TransactionRequest request) throws JsonProcessingException {
 
-        ObjectMapper mapper = new ObjectMapper();
-        String prettyJson = mapper.writerWithDefaultPrettyPrinter()
-                .writeValueAsString(request);
-        log.info("transaction request : {}",prettyJson);
+//        ObjectMapper mapper = new ObjectMapper();
+//        String prettyJson = mapper.writerWithDefaultPrettyPrinter()
+//                .writeValueAsString(request);
+//        log.info("transaction request : {}",prettyJson);
         return transactionService.initiate(request);
     }
 }

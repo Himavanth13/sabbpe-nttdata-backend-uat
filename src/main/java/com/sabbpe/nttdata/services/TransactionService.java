@@ -1,5 +1,6 @@
 package com.sabbpe.nttdata.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -103,8 +104,13 @@ public class TransactionService {
                 clientId, transactionMerchantId);
     }
 
-    public TransactionSuccessResponse initiate(TransactionRequest request) {
+    public TransactionSuccessResponse initiate(TransactionRequest request) throws JsonProcessingException {
         log.info("request : {} ",request);
+
+        ObjectMapper mapper = new ObjectMapper();
+        String prettyJson = mapper.writerWithDefaultPrettyPrinter()
+                .writeValueAsString(request);
+        log.info("transaction request : {}",prettyJson);
 
         try {
             // 🔹 0a) Extract customer details from request JSON

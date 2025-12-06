@@ -17,6 +17,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
             String merchantOrderId
     );
 
+
     List<Transaction> findByClientId(String clientId);
 
     Optional<Transaction> findTopByTransactionTokenOrderByCreatedAtDesc(String transactionToken);
