@@ -16,4 +16,13 @@ public class ClientProfileService {
         return clientProfileRepository.getKeys(userId, merchantId);
     }
 
+    public Map<String, Object> getCryptoByClientId(String clientId) {
+        return clientProfileRepository.getCryptoByClientId(clientId);
+    }
+
+    // 🔹 NEW: NTTDATA mapping lookup for a customer
+    public Map<String, Object> getNttMappingByCustomer(String custEmail, String custMobile) {
+        return clientProfileRepository.findNttMappingByCustomer(custEmail, custMobile);
+    }
+
 }

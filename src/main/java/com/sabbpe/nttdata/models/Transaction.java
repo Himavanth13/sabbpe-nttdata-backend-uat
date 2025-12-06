@@ -25,32 +25,29 @@ import java.time.LocalDateTime;
 @Data
 public class Transaction {
 
-    // ✅ AUTO UUID (HIBERNATE 6 / SPRING BOOT 3+)
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "transaction_id", length = 36, nullable = false, updatable = false)
     private String transactionId;
 
-    // ✅ Foreign Key
     @Column(name = "client_id", length = 36, nullable = false)
     private String clientId;
 
-    @Column(name = "merchant_order_id", length = 128, nullable = false)
+    @Column(name = "merchant_order_id", length = 128)
     private String merchantOrderId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", nullable = false)
+    @Column(name = "payment_method")
     private PaymentMethod paymentMethod = PaymentMethod.UPI;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_provider", nullable = false)
+    @Column(name = "payment_provider")
     private PaymentProvider paymentProvider;
 
-    // ✅ MONEY MUST BE BigDecimal
-    @Column(name = "amount", nullable = false, precision = 19, scale = 2)
+    @Column(name = "amount", precision = 19, scale = 2)
     private BigDecimal amount;
 
-    @Column(name = "currency", length = 3, nullable = false)
+    @Column(name = "currency", length = 3)
     private String currency = "INR";
 
     @Enumerated(EnumType.STRING)
@@ -78,11 +75,9 @@ public class Transaction {
     @Column(name = "device_fingerprint", length = 255)
     private String deviceFingerprint;
 
-    // ✅ MUST BE BigDecimal (THIS FIXES YOUR ERROR)
     @Column(name = "risk_score", precision = 5, scale = 2)
     private BigDecimal riskScore;
 
-    // ✅ JSON FIELDS
     @Lob
     @Column(name = "risk_flags", columnDefinition = "longtext")
     private String riskFlags;
@@ -92,10 +87,16 @@ public class Transaction {
     private String requestMetadata;
 
     @Lob
-    @Column(name = "response_metadata",columnDefinition = "LONGTEXT")
+    @Column(name = "response_metadata")
     private String responseMetadata;
 
-    // ✅ AUTO TIMESTAMPS
+    @Column(name = "merchant_transaction_timestamp")
+    private LocalDateTime merchantTransactionTimestamp;
+
+    @Lob
+    @Column(name = "transaction_token", columnDefinition = "longtext")
+    private String transactionToken;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
