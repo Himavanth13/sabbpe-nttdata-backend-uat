@@ -255,6 +255,9 @@ public class TransactionService {
             TransactionSuccessResponse decrypted =
                     nttCrypto.decryptResponse(encryptedResponse, TransactionSuccessResponse.class);
 
+            String decryptedpayload=objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(decrypted);
+            log.info("decrypted AtomToken payload : {}",decryptedpayload);
+
             // 🧾 Step 5: Check txnStatusCode
             String statusCode = decrypted.getResponseDetails().getTxnStatusCode();
             if (!"OTS0000".equals(statusCode)) {

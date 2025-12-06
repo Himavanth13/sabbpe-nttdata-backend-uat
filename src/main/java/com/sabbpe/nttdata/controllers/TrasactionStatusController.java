@@ -17,7 +17,7 @@ public class TrasactionStatusController {
 
     private final TrasactionStatusService trasactionStatusService;
 
-    @PostMapping("/transactionstatus")
+    @PostMapping("/PaymentStatus")
     public String getTransaction(@RequestBody TransactionStatusRequest transactionStatusRequest) {
 
        return trasactionStatusService.transactionStatusPayload(transactionStatusRequest);

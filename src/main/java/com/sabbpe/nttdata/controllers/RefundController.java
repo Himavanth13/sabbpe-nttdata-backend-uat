@@ -17,7 +17,7 @@ public class RefundController {
 
     private final RefundService refundService;
 
-    @PostMapping("/refund")
+    @PostMapping("/PaymentRefund")
     public String refund(@RequestBody RefundRequest request) throws Exception {
         return refundService.refund(request);
     }
