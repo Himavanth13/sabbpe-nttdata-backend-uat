@@ -30,7 +30,9 @@ public interface ClientProfileRepository extends JpaRepository<ClientProfile, St
             transaction_userid   AS transactionUserId,
             transaction_password AS transactionPassword,
             transaction_aes_key  AS transactionAesKey,
-            transaction_iv       AS transactionIv
+            transaction_iv       AS transactionIv,
+            transaction_merchantid as transactionMerchantId
+            
         FROM client_profile
         WHERE client_id = :clientId
         """, nativeQuery = true)

@@ -1,12 +1,11 @@
 package com.sabbpe.nttdata.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sabbpe.nttdata.models.Transaction;
-import com.sabbpe.nttdata.repositories.TransactionRepository;
+import com.sabbpe.nttdata.models.PaymentsTransaction;
+import com.sabbpe.nttdata.repositories.PaymentsTransactionRepository;
 import com.sabbpe.nttdata.utils.AESUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.ILoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,19 +18,19 @@ import java.util.Map;
 public class TransactionTokenService {
 
     private final ClientProfileService clientProfileService;
-    private final TransactionRepository transactionRepository;
+    private final PaymentsTransactionRepository paymentsTransactionRepository;
 
     private static final DateTimeFormatter TS_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public String encryptTransaction( Map<String,Object> body,
+    public String encryptTransaction(
+            Map<String,Object> body,
             String transactionUserId,
-            String transactionMerchantId,
+            String transactionMerchantId,   // <-- merchTxnId
             String clientId,
             String transactionTimestamp
     ) throws Exception {
 
-        // 1) Fetch AES config from client_profile
         Map<String, Object> keys =
                 clientProfileService.getKeys(transactionUserId, transactionMerchantId);
 
@@ -43,32 +42,30 @@ public class TransactionTokenService {
         String aesIv     = String.valueOf(keys.get("transactionIv"));
         String password  = String.valueOf(keys.get("transactionPassword"));
 
-
-        // 2) Normalize timestamp
         LocalDateTime ldt = LocalDateTime.parse(transactionTimestamp, TS_FORMATTER);
         String normalizedTs = ldt.format(TS_FORMATTER);
 
-        // 3) Prepare raw string
-        // MUST MATCH THE OTHER SIDE EXACTLY
+        // RAW STRING MUST MATCH VALIDATOR
         String raw = transactionUserId + transactionMerchantId + password + normalizedTs;
 
-        // 4) Encrypt
+        // Encrypt token
         String encryptedToken = AESUtil.encrypt(raw, aesKey, aesIv);
 
-        // 5) Persist transaction row
-        Transaction txn = new Transaction();
-        txn.setClientId(clientId);
-        txn.setMerchantOrderId(transactionMerchantId);
-        txn.setMerchantTransactionTimestamp(ldt);
-        txn.setTransactionToken(encryptedToken);
-
-        transactionRepository.save(txn);
         body.put("transaction_token",encryptedToken);
-        ObjectMapper mapper = new ObjectMapper();
-        String prettyJson = mapper.writerWithDefaultPrettyPrinter()
-                .writeValueAsString(body);
-        log.info("generate token request payload : {}",prettyJson);
-        // 6) Return token
+        // -------------------------------
+        // SAVE INTO payments_transactions
+        // -------------------------------
+        PaymentsTransaction txn = new PaymentsTransaction();
+
+        txn.setRequestMetadata(new ObjectMapper().writeValueAsString(body));
+
+        paymentsTransactionRepository.save(txn);
+
+
+
+        log.info("generate token request payload : {}",
+                new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(body));
+        log.info("data : {}",txn);
         return encryptedToken;
     }
 }

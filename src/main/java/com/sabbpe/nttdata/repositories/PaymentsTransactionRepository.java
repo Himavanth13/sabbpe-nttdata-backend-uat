@@ -11,44 +11,49 @@ import java.util.Optional;
 public interface PaymentsTransactionRepository extends JpaRepository<PaymentsTransaction, String> {
 
     /**
-     * merchTxnId → merchantTransactionId in the entity
+     * Find by merchTxnId (unique constraint exists on this column)
      */
-    Optional<PaymentsTransaction> findByMerchantTransactionId(String merchantTransactionId);
-
+    Optional<PaymentsTransaction> findByMerchTxnId(String merchTxnId);
 
     /**
-     * Equivalent to earlier:
-     * findByTransactionIdAndMerchantOrderId()
-     *
-     * Here: merchTxnId + merchId
+     * Find by merchTxnId + merchId
      */
-    Optional<PaymentsTransaction> findByMerchantTransactionIdAndTransactionMerchantId(
-            String merchantTransactionId,
-            String transactionMerchantId
-    );
-
+    Optional<PaymentsTransaction> findByMerchTxnIdAndMerchId(String merchTxnId, String merchId);
 
     /**
-     * Same as earlier: find all records by clientId
+     * Find all transactions for a client
      */
     List<PaymentsTransaction> findByClientId(String clientId);
 
-
     /**
-     * Equivalent to earlier:
-     * findTopByTransactionTokenOrderByCreatedAtDesc()
+     * Find most recent row containing the token from token generation
      */
     Optional<PaymentsTransaction> findTopByTransactionTokenOrderByCreatedAtDesc(String transactionToken);
 
-
     /**
-     * Optional extra: find last transaction for a merchant
+     * Find most recent row for a merchant
      */
-    Optional<PaymentsTransaction> findTopByTransactionMerchantIdOrderByCreatedAtDesc(String merchantId);
-
+    Optional<PaymentsTransaction> findTopByMerchIdOrderByCreatedAtDesc(String merchId);
 
     /**
-     * Optional search by status code
+     * Find all transactions by status code
      */
     List<PaymentsTransaction> findByStatusCode(String statusCode);
+
+    /**
+     * Find by udf1 (useful when UDF1 = transaction UUID)
+     */
+    Optional<PaymentsTransaction> findByUdf1(String udf1);
+
+    /**
+     * Find by udf3 (udf3 is often token)
+     */
+    Optional<PaymentsTransaction> findByUdf3(String udf3);
+
+    /**
+     * Find latest by customer email + mobile (optional use case)
+     */
+    Optional<PaymentsTransaction> findTopByCustEmailAndCustMobileOrderByCreatedAtDesc(
+            String custEmail, String custMobile
+    );
 }
