@@ -20,7 +20,7 @@ public class TransactionCallbackService {
     private final NttCrypto nttCrypto;
     private final PaymentsTransactionRepository paymentsTransactionRepository;
 
-    @Value("${ndps.trxcallbackurlpage}")
+
     private String FRONTEND_URL;
 
     @Transactional
@@ -41,6 +41,12 @@ public class TransactionCallbackService {
             String udf3 = root.path("payInstrument")
                     .path("extras")
                     .path("udf3")
+                    .asText();
+
+            // extract frontend url;
+            FRONTEND_URL=root.path("payInstrument")
+                    .path("extras")
+                    .path("udf5")
                     .asText();
 
             log.info("Token extracted from callback (udf3): {}", udf3);
