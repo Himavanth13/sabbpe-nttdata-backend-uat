@@ -82,14 +82,17 @@ public class TransactionCallbackService {
 
             log.info("PaymentsTransaction updated successfully for token = {}", udf6);
 
-            return "redirect:" + FRONTEND_URL + "?txnId=" +root.path("payInstrument")
+            String redirect= "redirect:" + FRONTEND_URL + "?txnId=" +root.path("payInstrument")
                     .path("merchDetails")
                     .path("merchTxnId")
                     .asText();
+            log.info("redirect url : {}",redirect);
+            return redirect;
 
         } catch (Exception e) {
             log.error("Callback processing FAILED", e);
-            return "redirect:" + FRONTEND_URL + "?error=callback_failed";
+            String redirect= "redirect:" + FRONTEND_URL + "?error=callback_failed";
+            return redirect;
         }
     }
 }
