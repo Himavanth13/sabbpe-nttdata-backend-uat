@@ -56,6 +56,7 @@ public class TransactionRequest {
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CustDetails {
+        private String custFirstName;
         private String custEmail;
         private String custMobile;
     }

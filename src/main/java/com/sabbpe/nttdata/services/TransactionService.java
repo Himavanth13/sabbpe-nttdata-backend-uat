@@ -36,6 +36,8 @@ public class TransactionService {
 
     @Value("${ndps.merch-id}")
     private String merchId;
+    @Value("${ndps.password}")
+    private String password;
 
     private static final DateTimeFormatter TS_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -121,10 +123,12 @@ public class TransactionService {
             String nttMerchantId       = String.valueOf(nttMapping.get("nttMerchantId"));
 
             // Replace NDPS credentials
-            request.getPayInstrument().getMerchDetails().setUserId(nttUserId);
-            request.getPayInstrument().getMerchDetails().setMerchId(nttMerchantId);
-            request.getPayInstrument().getMerchDetails().setPassword(nttPassword);
-
+            request.getPayInstrument().getMerchDetails().setUserId(merchId);
+            request.getPayInstrument().getMerchDetails().setMerchId(merchId);
+            request.getPayInstrument().getMerchDetails().setPassword(password);
+            ObjectMapper objectMapper=new ObjectMapper();
+            String payload=objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
+            log.info("request metadata after setting credentials : {}",payload);
             // ---------------------------
             // Validate transaction token
             // ---------------------------
@@ -172,7 +176,8 @@ public class TransactionService {
                     authUrl, HttpMethod.POST, new HttpEntity<>(form, headers), String.class);
 
             if (response.getBody() == null || !response.getBody().contains("encData=")) {
-                throw new RuntimeException("Invalid NDPS response");
+                log.info("respose from ndps : {}",response.getBody());
+                return null;
             }
 
             String encryptedResponse =
