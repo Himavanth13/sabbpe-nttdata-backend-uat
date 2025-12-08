@@ -27,19 +27,22 @@
             const payload = {
                 payInstrument: {
                     extras: {
-                        udf1: "-",
-                        udf2: "-",
-                        udf3: "-",
-                        udf4: "-",
+                        udf1: "TXN202512061215000123",
+                        udf2: "d39ad0f5-d298-11f0-96ff-4201c0a81e02",
+                        udf3: "+6M90eoHG9Ro3LBTCBWKuZiBPmRoLkdKLR3vBzm2OjLoJMq3Bw1O5fDnodtuPzJ6",
+                        udf4: "DC",
                         udf5: uuid
                     },
                     payDetails: {
                         amount: 1.12,
-                        product: "NSE"
+                        product: "NSE",
+                        custAccNo: null,
+                        txnCurrency: "INR"
                     },
                     custDetails: {
-                        custEmail: "testuser@nttdata.com",
-                        custMobile: "9797979797"
+                        custFirstName: "Sam M",
+                        custEmail: "contact@sabbpe.com",
+                        custMobile: "9876543210"
                     },
                     headDetails: {
                         api: "AUTH",
@@ -47,9 +50,8 @@
                         platform: "FLASH"
                     },
                     merchDetails: {
-                        userId: "998776",
-                        merchId: "665887",
-                        password: "Test@123456",
+                        userId: "665887",
+                        merchId: "998776",
                         merchTxnId: uuid,
                         merchTxnDate: "2025-02-26 18:45:00"
                     },
