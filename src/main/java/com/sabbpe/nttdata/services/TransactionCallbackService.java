@@ -37,24 +37,24 @@ public class TransactionCallbackService {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(decryptedJson);
 
-            // 🔍 2. Extract udf3 (token)
-            String udf3 = root.path("payInstrument")
+            // 🔍 2. Extract udf6 (token)
+            String udf6 = root.path("payInstrument")
                     .path("extras")
-                    .path("udf3")
+                    .path("udf6")
                     .asText();
 
             // extract frontend url;
             FRONTEND_URL=root.path("payInstrument")
                     .path("extras")
-                    .path("udf5")
+                    .path("udf7")
                     .asText();
 
-            log.info("Token extracted from callback (udf3): {}", udf3);
+            log.info("Token extracted from callback (udf6): {}", udf6);
 
             // 🔍 3. Find PaymentsTransaction record by token
             PaymentsTransaction txn = paymentsTransactionRepository
-                    .findTopByTransactionTokenOrderByCreatedAtDesc(udf3)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid / unknown token: " + udf3));
+                    .findTopByTransactionTokenOrderByCreatedAtDesc(udf6)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid / unknown token: " + udf6));
 
             // 📝 4. Parse callback JSON into DTO
             TransactionCallbackResponse callback =
@@ -80,7 +80,7 @@ public class TransactionCallbackService {
 
             paymentsTransactionRepository.save(txn);
 
-            log.info("PaymentsTransaction updated successfully for token = {}", udf3);
+            log.info("PaymentsTransaction updated successfully for token = {}", udf6);
 
             return "redirect:" + FRONTEND_URL + "?txnId=" +
                     callback.getPayInstrument().getMerchDetails().getMerchTxnId();

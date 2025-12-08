@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -68,6 +69,14 @@ public class TransactionService {
         String transactionMerchantId = String.valueOf(crypto.get("transactionMerchantId"));
 
         LocalDateTime ts = tokenTxn.getMerchantTransactionTimestamp();
+
+//        long minutesPassed = Duration.between(ts, LocalDateTime.now()).toMinutes();
+//
+//        if (minutesPassed >= 15) {
+//            throw new IllegalArgumentException("token expired ----------------");
+//
+//        }
+
         if (ts == null) {
             throw new IllegalStateException("Missing merchant transaction timestamp");
         }
@@ -132,9 +141,9 @@ public class TransactionService {
             // ---------------------------
             // Validate transaction token
             // ---------------------------
-            String token = request.getPayInstrument().getExtras().getUdf3();
+            String token = request.getPayInstrument().getExtras().getUdf6();
             if (token == null || token.isBlank()) {
-                throw new IllegalArgumentException("Missing transaction token in udf3");
+                throw new IllegalArgumentException("Missing transaction token in udf6");
             }
 
             validateTransactionToken(token);
@@ -185,6 +194,9 @@ public class TransactionService {
 
             TransactionSuccessResponse decrypted =
                     nttCrypto.decryptResponse(encryptedResponse, TransactionSuccessResponse.class);
+            String decryptedJson= objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(decrypted);
+
+            log.info("Valid response from nttdata : {}",decryptedJson);
 
             // ---------------------------
             // UPDATE RESPONSE METADATA

@@ -42,6 +42,11 @@ public class TransactionRequest {
         private String udf3;
         private String udf4;
         private String udf5;
+        private String udf6;
+        private String udf7;
+        private String udf8;
+        private String udf9;
+        private String udf10;
     }
 
     @Data
