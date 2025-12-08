@@ -82,8 +82,10 @@ public class TransactionCallbackService {
 
             log.info("PaymentsTransaction updated successfully for token = {}", udf6);
 
-            return "redirect:" + FRONTEND_URL + "?txnId=" +
-                    callback.getPayInstrument().getMerchDetails().getMerchTxnId();
+            return "redirect:" + FRONTEND_URL + "?txnId=" +root.path("payInstrument")
+                    .path("merchDetails")
+                    .path("merchTxnId")
+                    .asText();
 
         } catch (Exception e) {
             log.error("Callback processing FAILED", e);
