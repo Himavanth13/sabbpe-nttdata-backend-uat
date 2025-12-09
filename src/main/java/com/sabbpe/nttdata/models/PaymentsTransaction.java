@@ -14,119 +14,125 @@ import java.time.LocalDateTime;
 public class PaymentsTransaction {
 
     @Id
-    @Column(nullable = false, length = 36)
+    @Column(name = "id", nullable = false, length = 36)
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private String id;   // DB already generates UUID(), so REMOVE @GeneratedValue
 
-    @Column(name = "client_id")
+    @Column(name = "client_id", length = 36)
     private String clientId;
 
-    @Column(name = "merchTxnId")
+    @Column(name = "merchTxnId", length = 128)
     private String merchTxnId;
 
-    @Column(name = "merchant_transaction_timestamp")
-    private LocalDateTime merchantTransactionTimestamp;
+    @Column(name = "transaction_timestamp")
+    private LocalDateTime transactionTimestamp;
 
     @Column(name = "transaction_token", columnDefinition = "LONGTEXT")
     private String transactionToken;
 
-    @Column(name = "userId")
+    @Column(name = "transaction_userid")
+    private String transactionUserId;
+
+    @Column(name = "transaction_merchantid")
+    private String transactionMerchantId;
+
+    @Column(name = "userId", length = 64)
     private String userId;
 
-    @Column(name = "merchId")
+    @Column(name = "merchId", length = 64)
     private String merchId;
 
-    @Column(name = "password")
+    @Column(name = "password", length = 255)
     private String password;
 
     @Column(name = "merchTxnDate")
     private LocalDateTime merchTxnDate;
 
-    @Column(name = "amount")
+    @Column(name = "amount", precision = 12, scale = 2)
     private BigDecimal amount;
 
-    @Column(name = "product")
+    @Column(name = "product", length = 64)
     private String product;
 
-    @Column(name = "custAccNo")
+    @Column(name = "custAccNo", length = 64)
     private String custAccNo;
 
-    @Column(name = "txnCurrency")
+    @Column(name = "txnCurrency", length = 3)
     private String txnCurrency;
 
-    @Column(name = "api")
+    @Column(name = "api", length = 32)
     private String api;
 
-    @Column(name = "version")
+    @Column(name = "version", length = 32)
     private String version;
 
-    @Column(name = "platform")
+    @Column(name = "platform", length = 32)
     private String platform;
 
-    @Column(name = "subChannel")
+    @Column(name = "subChannel", length = 32)
     private String subChannel;
 
-    @Column(name = "udf1")
+    @Column(name = "udf1", length = 255)
     private String udf1;
 
-    @Column(name = "udf2")
+    @Column(name = "udf2", length = 255)
     private String udf2;
 
-    @Column(name = "udf3")
+    @Column(name = "udf3", length = 255)
     private String udf3;
 
-    @Column(name = "udf4")
+    @Column(name = "udf4", length = 255)
     private String udf4;
 
-    @Column(name = "udf5")
+    @Column(name = "udf5", length = 255)
     private String udf5;
 
-    @Column(name = "udf6")
+    @Column(name = "udf6", length = 255)
     private String udf6;
 
-    @Column(name = "udf7")
+    @Column(name = "udf7", length = 255)
     private String udf7;
 
-    @Column(name = "udf8")
+    @Column(name = "udf8", length = 255)
     private String udf8;
 
-    @Column(name = "udf9")
+    @Column(name = "udf9", length = 255)
     private String udf9;
 
-    @Column(name = "udf10")
+    @Column(name = "udf10", length = 255)
     private String udf10;
 
-    @Column(name = "custFirstName")
+    @Column(name = "custFirstName", length = 255)
     private String custFirstName;
 
-    @Column(name = "custLastName")
+    @Column(name = "custLastName", length = 255)
     private String custLastName;
 
-    @Column(name = "custEmail")
+    @Column(name = "custEmail", length = 255)
     private String custEmail;
 
-    @Column(name = "custMobile")
+    @Column(name = "custMobile", length = 20)
     private String custMobile;
 
-    @Column(name = "custAddr1")
+    @Column(name = "custAddr1", length = 255)
     private String custAddr1;
 
-    @Column(name = "custAddr2")
+    @Column(name = "custAddr2", length = 255)
     private String custAddr2;
 
-    @Column(name = "custCountry")
+    @Column(name = "custCountry", length = 64)
     private String custCountry;
 
-    @Column(name = "custCity")
+    @Column(name = "custCity", length = 64)
     private String custCity;
 
-    @Column(name = "custState")
+    @Column(name = "custState", length = 64)
     private String custState;
 
-    @Column(name = "custZipCode")
+    @Column(name = "custZipCode", length = 32)
     private String custZipCode;
 
-    @Column(name = "custAccIfsc")
+    @Column(name = "custAccIfsc", length = 32)
     private String custAccIfsc;
 
     @Column(name = "atomTokenId")
@@ -135,13 +141,13 @@ public class PaymentsTransaction {
     @Column(name = "atomTxnId")
     private Long atomTxnId;
 
-    @Column(name = "surchargeAmount")
+    @Column(name = "surchargeAmount", precision = 12, scale = 2)
     private BigDecimal surchargeAmount;
 
-    @Column(name = "totalAmount")
+    @Column(name = "totalAmount", precision = 12, scale = 2)
     private BigDecimal totalAmount;
 
-    @Column(name = "clientCode")
+    @Column(name = "clientCode", length = 32)
     private String clientCode;
 
     @Column(name = "signature", columnDefinition = "TEXT")
@@ -156,31 +162,31 @@ public class PaymentsTransaction {
     @Column(name = "otsBankId")
     private Integer otsBankId;
 
-    @Column(name = "bankTxnId")
+    @Column(name = "bankTxnId", length = 64)
     private String bankTxnId;
 
-    @Column(name = "authId")
+    @Column(name = "authId", length = 32)
     private String authId;
 
-    @Column(name = "otsBankName")
+    @Column(name = "otsBankName", length = 150)
     private String otsBankName;
 
-    @Column(name = "cardType")
+    @Column(name = "cardType", length = 32)
     private String cardType;
 
-    @Column(name = "cardMaskNumber")
+    @Column(name = "cardMaskNumber", length = 32)
     private String cardMaskNumber;
 
-    @Column(name = "scheme")
+    @Column(name = "scheme", length = 32)
     private String scheme;
 
-    @Column(name = "statusCode")
+    @Column(name = "statusCode", length = 32)
     private String statusCode;
 
-    @Column(name = "statusMessage")
+    @Column(name = "statusMessage", length = 255)
     private String statusMessage;
 
-    @Column(name = "statusDescription")
+    @Column(name = "statusDescription", length = 255)
     private String statusDescription;
 
     @Column(name = "request_metadata", columnDefinition = "LONGTEXT")
@@ -189,20 +195,20 @@ public class PaymentsTransaction {
     @Column(name = "response_metadata", columnDefinition = "LONGTEXT")
     private String responseMetadata;
 
-    @Column(name = "remarks")
+    @Column(name = "remarks", length = 255)
     private String remarks;
 
     @Column(name = "qrString", columnDefinition = "TEXT")
     private String qrString;
 
-    @Column(name = "mccCode")
+    @Column(name = "mccCode", length = 32)
     private String mccCode;
 
     @CreationTimestamp
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 }

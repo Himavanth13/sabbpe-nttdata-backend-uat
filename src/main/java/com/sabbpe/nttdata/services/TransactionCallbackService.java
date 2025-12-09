@@ -68,7 +68,8 @@ public class TransactionCallbackService {
 
             // Extract fields
             String statusCode = callback.getPayInstrument().getResponseDetails().getStatusCode();
-            String json= mapper.writeValueAsString(decryptedJson);
+
+            String json= mapper.writerWithDefaultPrettyPrinter().writeValueAsString(decryptedJson);
             // 📝 5. UPDATE PaymentsTransaction table
             txn.setResponseMetadata(json);
             txn.setStatusCode(statusCode);

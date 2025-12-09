@@ -20,7 +20,7 @@ public interface ClientProfileRepository extends JpaRepository<ClientProfile, St
         WHERE transaction_userid = :transactionUserId
           AND transaction_merchantid = :transactionMerchantId
         """, nativeQuery = true)
-    public Map<String, Object> getKeys(
+    Map<String, Object> getKeys(
             @Param("transactionUserId") String transactionUserId,
             @Param("transactionMerchantId") String transactionMerchantId
     );
@@ -31,21 +31,19 @@ public interface ClientProfileRepository extends JpaRepository<ClientProfile, St
             transaction_password AS transactionPassword,
             transaction_aes_key  AS transactionAesKey,
             transaction_iv       AS transactionIv,
-            transaction_merchantid as transactionMerchantId
-            
+            transaction_merchantid AS transactionMerchantId
         FROM client_profile
         WHERE client_id = :clientId
         """, nativeQuery = true)
     Map<String, Object> getCryptoByClientId(@Param("clientId") String clientId);
 
-    // 🔹 NEW: find client + NTT credentials by customer email & mobile
     @Query(value = """
         SELECT
-            client_id    AS clientId,
-            client_email AS clientEmail,
-            client_mobile AS clientMobile,
-            ntt_userid   AS nttUserId,
-            ntt_password AS nttPassword,
+            client_id      AS clientId,
+            client_email   AS clientEmail,
+            client_mobile  AS clientMobile,
+            ntt_userid     AS nttUserId,
+            ntt_password   AS nttPassword,
             ntt_merchantid AS nttMerchantId
         FROM client_profile
         WHERE client_email  = :custEmail

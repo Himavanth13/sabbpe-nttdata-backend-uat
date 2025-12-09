@@ -71,7 +71,7 @@ public class TransactionService {
         log.info("key to decrypt : {}",aesKey);
         log.info("iv to decrypt : {}",aesIv);
 
-        LocalDateTime ts = tokenTxn.getMerchantTransactionTimestamp();
+        LocalDateTime ts = tokenTxn.getTransactionTimestamp();
 
 //        long minutesPassed = Duration.between(ts, LocalDateTime.now()).toMinutes();
 //
