@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -82,10 +85,15 @@ public class TransactionCallbackService {
 
             log.info("PaymentsTransaction updated successfully for token = {}", udf6);
 
-            String redirect= "redirect:" + FRONTEND_URL + "?txnId=" +root.path("payInstrument")
+            JsonNode merchTxnIdNode = root.path("payInstrument")
                     .path("merchDetails")
-                    .path("merchTxnId")
-                    .asText();
+                    .path("merchTxnId");
+
+            String merchTxnId = merchTxnIdNode.isMissingNode() ? "" : merchTxnIdNode.asText();
+            String encodedTxnId = URLEncoder.encode(merchTxnId, StandardCharsets.UTF_8);
+
+            String redirect = "redirect:" + FRONTEND_URL + "?txnId=" + encodedTxnId;
+
             log.info("redirect url : {}",redirect);
             return redirect;
 

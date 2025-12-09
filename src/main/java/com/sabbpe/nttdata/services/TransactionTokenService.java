@@ -41,7 +41,8 @@ public class TransactionTokenService {
         String aesKey    = String.valueOf(keys.get("transactionAesKey"));
         String aesIv     = String.valueOf(keys.get("transactionIv"));
         String password  = String.valueOf(keys.get("transactionPassword"));
-
+        log.info("key to encrypt : {}",aesKey);
+        log.info("iv to encrypt : {}",aesIv);
         LocalDateTime ldt = LocalDateTime.parse(transactionTimestamp, TS_FORMATTER);
         String normalizedTs = ldt.format(TS_FORMATTER);
 

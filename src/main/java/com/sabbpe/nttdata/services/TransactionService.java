@@ -68,6 +68,9 @@ public class TransactionService {
         String aesIv               = String.valueOf(crypto.get("transactionIv"));
         String transactionMerchantId = String.valueOf(crypto.get("transactionMerchantId"));
 
+        log.info("key to decrypt : {}",aesKey);
+        log.info("iv to decrypt : {}",aesIv);
+
         LocalDateTime ts = tokenTxn.getMerchantTransactionTimestamp();
 
 //        long minutesPassed = Duration.between(ts, LocalDateTime.now()).toMinutes();
@@ -132,9 +135,9 @@ public class TransactionService {
             String nttMerchantId       = String.valueOf(nttMapping.get("nttMerchantId"));
 
             // Replace NDPS credentials
-            request.getPayInstrument().getMerchDetails().setUserId(merchId);
-            request.getPayInstrument().getMerchDetails().setMerchId(merchId);
-            request.getPayInstrument().getMerchDetails().setPassword(password);
+            request.getPayInstrument().getMerchDetails().setUserId(nttUserId);
+            request.getPayInstrument().getMerchDetails().setMerchId(nttMerchantId);
+            request.getPayInstrument().getMerchDetails().setPassword(nttPassword);
             ObjectMapper objectMapper=new ObjectMapper();
             String payload=objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
             log.info("request metadata after setting credentials : {}",payload);
