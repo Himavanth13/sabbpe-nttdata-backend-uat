@@ -28,8 +28,7 @@ public class TransactionCallbackResponse {
     public static class MerchDetails {
         private Long merchId;
         private String merchTxnId;
-        private String mccCode;
-        private String merchTxnDate;
+        private String merchTxnDate;   // Matches JSON
     }
 
     // ===================== PAYMENT DETAILS =====================
@@ -44,10 +43,8 @@ public class TransactionCallbackResponse {
         private String clientCode;
         private String txnInitDate;
         private String txnCompleteDate;
-        private String custAccIfsc;
         private String txnCurrency;
         private String signature;
-        private String remarks;
     }
 
     // ===================== PRODUCT DETAILS =====================
@@ -61,7 +58,6 @@ public class TransactionCallbackResponse {
     @Data
     public static class CustDetails {
         private String custFirstName;
-        private String custLastName;
         private String custEmail;
         private String custMobile;
         private BillingInfo billingInfo;
@@ -88,22 +84,21 @@ public class TransactionCallbackResponse {
     // ===================== BANK DETAILS =====================
     @Data
     public static class BankDetails {
-        private String otsBankId;
+        private Long otsBankId;           // FIXED → your JSON has a number
+        private String bankTxnId;
+        private String authId;
         private String otsBankName;
         private String cardType;
         private String cardMaskNumber;
-        private String qrString;
-        private String bankTxnId;
-        private String authId;
         private String scheme;
     }
 
     // ===================== RESPONSE DETAILS =====================
     @Data
     public static class ResponseDetails {
+        private String statusCode;
         private String message;
         private String description;
-        private String statusCode;
     }
 
     // ===================== EXTRAS / UDF =====================

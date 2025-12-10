@@ -16,7 +16,7 @@ public class PaymentsTransaction {
     @Id
     @Column(name = "id", nullable = false, length = 36)
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;   // DB already generates UUID(), so REMOVE @GeneratedValue
+    private String id; // DB generates UUID()
 
     @Column(name = "client_id", length = 36)
     private String clientId;
@@ -189,6 +189,15 @@ public class PaymentsTransaction {
     @Column(name = "statusDescription", length = 255)
     private String statusDescription;
 
+    @Column(name = "resp_txnStatusCode", length = 32)
+    private String respTxnStatusCode;
+
+    @Column(name = "resp_txnMessage", length = 255)
+    private String respTxnMessage;
+
+    @Column(name = "resp_txnDescription", length = 255)
+    private String respTxnDescription;
+
     @Column(name = "request_metadata", columnDefinition = "LONGTEXT")
     private String requestMetadata;
 
@@ -205,10 +214,10 @@ public class PaymentsTransaction {
     private String mccCode;
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }
