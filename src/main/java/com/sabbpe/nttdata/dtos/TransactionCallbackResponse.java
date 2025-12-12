@@ -25,14 +25,16 @@ public class TransactionCallbackResponse {
 
     // ===================== MERCHANT DETAILS =====================
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class MerchDetails {
         private Long merchId;
         private String merchTxnId;
-        private String merchTxnDate;   // Matches JSON
+        private String merchTxnDate;
     }
 
     // ===================== PAYMENT DETAILS =====================
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PayDetails {
         private Long atomTxnId;
         private List<ProductDetails> prodDetails;
@@ -49,6 +51,7 @@ public class TransactionCallbackResponse {
 
     // ===================== PRODUCT DETAILS =====================
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ProductDetails {
         private String prodName;
         private Double prodAmount;
@@ -56,6 +59,7 @@ public class TransactionCallbackResponse {
 
     // ===================== CUSTOMER DETAILS =====================
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class CustDetails {
         private String custFirstName;
         private String custEmail;
@@ -65,6 +69,7 @@ public class TransactionCallbackResponse {
 
     // ===================== BILLING INFO =====================
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BillingInfo {
         private String custAddr1;
         private String custAddr2;
@@ -76,6 +81,7 @@ public class TransactionCallbackResponse {
 
     // ===================== PAY MODE SPECIFIC DATA =====================
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PayModeSpecificData {
         private List<String> subChannel;
         private BankDetails bankDetails;
@@ -83,26 +89,32 @@ public class TransactionCallbackResponse {
 
     // ===================== BANK DETAILS =====================
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BankDetails {
-        private Long otsBankId;           // FIXED → your JSON has a number
+        private Long otsBankId;
         private String bankTxnId;
         private String authId;
         private String otsBankName;
         private String cardType;
         private String cardMaskNumber;
         private String scheme;
+
+        // if callback ever includes pgMerchId, JSON will NOT break
+        private String pgMerchId;
     }
 
     // ===================== RESPONSE DETAILS =====================
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ResponseDetails {
         private String statusCode;
         private String message;
         private String description;
     }
 
-    // ===================== EXTRAS / UDF =====================
+    // ===================== EXTRAS (UDF FIELDS) =====================
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Extras {
         private String udf1;
         private String udf2;
