@@ -14,7 +14,7 @@ public class TransactionCallbackController {
 
     private final TransactionCallbackService transactionCallbackService;
 
-    @PostMapping("/initiatepaymentcallback")
+    @PostMapping("/payment/callback")
         public String handleCallback(@RequestParam("encData") String encData) {
 
         return transactionCallbackService.callback(encData);
