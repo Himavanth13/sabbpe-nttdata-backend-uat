@@ -7,15 +7,22 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("/api/v1")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 @Slf4j
 public class TransactionCallbackController {
 
     private final TransactionCallbackService transactionCallbackService;
 
-    @PostMapping("/payment/callback")
+    @PostMapping("/v1/payment/callback")
         public String handleCallback(@RequestParam("encData") String encData) {
+
+        return transactionCallbackService.callback(encData);
+
+    }
+    //UAT
+    @PostMapping("/payment/callback")
+    public String uatHandleCallback(@RequestParam("encData") String encData) {
 
         return transactionCallbackService.callback(encData);
 
