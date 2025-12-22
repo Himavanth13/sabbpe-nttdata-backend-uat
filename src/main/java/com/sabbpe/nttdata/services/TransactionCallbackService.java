@@ -86,11 +86,12 @@ public class TransactionCallbackService {
 
             log.info("PaymentsTransaction updated successfully for token = {}", udf6);
 
-            JsonNode merchTxnIdNode = root.path("payInstrument")
-                    .path("merchDetails")
-                    .path("merchTxnId");
+            String merchTxnId = root.path("payInstrument")
+                    .path("extras")
+                    .path("udf10")
+                    .asText();
 
-            String merchTxnId = merchTxnIdNode.isMissingNode() ? "" : merchTxnIdNode.asText();
+//            String merchTxnId = merchTxnIdNode.isMissingNode() ? "" : merchTxnIdNode.asText();
             String encodedTxnId = URLEncoder.encode(merchTxnId, StandardCharsets.UTF_8);
 
             String redirect = "redirect:" + FRONTEND_URL + "?txnId=" + encodedTxnId;
