@@ -20,6 +20,7 @@ public class TransactionTokenController {
     public String generateTransactionToken(
          @RequestBody Map<String, Object> body
     ) throws Exception {
+
 //        ObjectMapper mapper = new ObjectMapper();
 //        String prettyJson = mapper.writerWithDefaultPrettyPrinter()
 //                .writeValueAsString(body);
@@ -28,6 +29,7 @@ public class TransactionTokenController {
         String transactionMerchantId=String.valueOf(body.get("transaction_merchantid"));
         String clientId   = String.valueOf(body.get("client_Id"));          // note the capital I
         String timestamp  = String.valueOf(body.get("transaction_timestamp"));
+        log.info(" token generation payload :  {}",body.toString());
 
         return transactionTokenService.encryptTransaction( body,
                 transactionUserId,
