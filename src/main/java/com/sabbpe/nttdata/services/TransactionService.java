@@ -1,11 +1,13 @@
 package com.sabbpe.nttdata.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sabbpe.nttdata.dtos.TransactionRequest;
 import com.sabbpe.nttdata.dtos.TransactionSuccessResponse;
-import com.sabbpe.nttdata.models.PaymentsTransaction;
-import com.sabbpe.nttdata.repositories.PaymentsTransactionRepository;
+import com.sabbpe.nttdata.enums.TransactionStatus;
+import com.sabbpe.nttdata.models.MasterTransaction;
+import com.sabbpe.nttdata.models.NttTransaction;
+import com.sabbpe.nttdata.repositories.MasterTransactionRepository;
+import com.sabbpe.nttdata.repositories.NttTransactionRepository;
 import com.sabbpe.nttdata.utils.AESUtil;
 import com.sabbpe.nttdata.utils.NttCrypto;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +15,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import tools.jackson.databind.ObjectMapper;
 
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -29,8 +34,10 @@ public class TransactionService {
 
     private final RestTemplate restTemplate;
     private final NttCrypto nttCrypto;
-    private final PaymentsTransactionRepository paymentsTransactionRepository;
+    private final MasterTransactionRepository masterTransactionRepository;
+    private final NttTransactionRepository nttTransactionRepository;
     private final ClientProfileService clientProfileService;
+    private final ObjectMapper objectMapper;
 
     @Value("${ndps.auth-url}")
     private String authUrl;
@@ -45,17 +52,20 @@ public class TransactionService {
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
-    // ==========================================================
-    // VALIDATE TOKEN (FIXED)
-    // ==========================================================
-    private void validateTransactionToken(String token) throws Exception {
+    /**
+     * Validate transaction token
+     */
 
-        PaymentsTransaction tokenTxn = paymentsTransactionRepository
-                .findTopByTransactionTokenOrderByCreatedAtDesc(token)
+    private void validateTransactionToken(String token, String clientId) throws Exception {
+
+        MasterTransaction masterTxn = masterTransactionRepository
+                .findByTransactionToken(token)
                 .orElseThrow(() ->
                         new IllegalArgumentException("Invalid or unknown transaction token"));
 
-        String clientId = tokenTxn.getClientId();
+        if(!masterTxn.getClientId().equals(clientId)) {
+            throw new IllegalArgumentException("Token does not belong to this client");
+        }
 
         Map<String, Object> crypto = clientProfileService.getCryptoByClientId(clientId);
 
@@ -63,26 +73,24 @@ public class TransactionService {
             throw new IllegalStateException("No crypto config found for client: " + clientId);
         }
 
-        String transactionUserId   = String.valueOf(crypto.get("transactionUserId"));
+        String transactionUserId = String.valueOf(crypto.get("transactionUserId"));
         String transactionPassword = String.valueOf(crypto.get("transactionPassword"));
-        String aesKey              = String.valueOf(crypto.get("transactionAesKey"));
-        String aesIv               = String.valueOf(crypto.get("transactionIv"));
+        String aesKey = String.valueOf(crypto.get("transactionAesKey"));
+        String aesIv = String.valueOf(crypto.get("transactionIv"));
         String transactionMerchantId = String.valueOf(crypto.get("transactionMerchantId"));
 
         log.info("key to decrypt : {}",aesKey);
         log.info("iv to decrypt : {}",aesIv);
 
-        LocalDateTime ts = tokenTxn.getTransactionTimestamp();
-
-//        long minutesPassed = Duration.between(ts, LocalDateTime.now()).toMinutes();
-//
-//        if (minutesPassed >= 15) {
-//            throw new IllegalArgumentException("token expired ----------------");
-//
-//        }
+        LocalDateTime ts = masterTxn.getTransactionTimestamp();
 
         if (ts == null) {
             throw new IllegalStateException("Missing merchant transaction timestamp");
+        }
+
+        long minutesPassed = Duration.between(ts, LocalDateTime.now()).toMinutes();
+        if(minutesPassed >= 15){
+            throw new IllegalArgumentException("Transaction token expired");
         }
 
         String expectedRaw = transactionUserId
@@ -100,19 +108,19 @@ public class TransactionService {
                 clientId, transactionMerchantId);
     }
 
-
-    // ==========================================================
-    // INITIATE PAYMENT (FULL UPDATE USING TOKEN)
-    // ==========================================================
+    /**
+     * Initiate payment with new architecture
+     */
+    @Transactional
     public TransactionSuccessResponse initiate(TransactionRequest request)
             throws JsonProcessingException {
 
         log.info("Incoming initiation request:\n{}",
-                new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(request));
+                objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(request));
 
         try {
             // ---------------------------
-            // Extract customer details
+            // 1. Extract customer details
             // ---------------------------
             String custEmail = request.getPayInstrument().getCustDetails().getCustEmail();
             String custMobile = request.getPayInstrument().getCustDetails().getCustMobile();
@@ -130,53 +138,67 @@ public class TransactionService {
                 throw new IllegalArgumentException("Customer not mapped to client_profile");
             }
 
-            String clientIdFromProfile = String.valueOf(nttMapping.get("clientId"));
-            String nttUserId           = String.valueOf(nttMapping.get("nttUserId"));
-            String nttPassword         = String.valueOf(nttMapping.get("nttPassword"));
-            String nttMerchantId       = String.valueOf(nttMapping.get("nttMerchantId"));
+            String clientId = String.valueOf(nttMapping.get("clientId"));
+            String nttUserId = String.valueOf(nttMapping.get("nttUserId"));
+            String nttPassword = String.valueOf(nttMapping.get("nttPassword"));
+            String nttMerchantId = String.valueOf(nttMapping.get("nttMerchantId"));
 
-            // Replace NDPS credentials
-            request.getPayInstrument().getMerchDetails().setUserId(nttUserId);
-            request.getPayInstrument().getMerchDetails().setMerchId(nttMerchantId);
-            request.getPayInstrument().getMerchDetails().setPassword(nttPassword);
-            ObjectMapper objectMapper=new ObjectMapper();
-            String payload=objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
-            log.info("request metadata after setting credentials : {}",payload);
-            // ---------------------------
-            // Validate transaction token
-            // ---------------------------
+            // ==============================
+            // 2. Validate token
+            // ==============================
+
             String token = request.getPayInstrument().getExtras().getUdf6();
             if (token == null || token.isBlank()) {
                 throw new IllegalArgumentException("Missing transaction token in udf6");
             }
 
-            validateTransactionToken(token);
+            validateTransactionToken(token, clientId);
 
-            // ---------------------------
-            // Fetch existing txn row (this ensures update)
-            // ---------------------------
-            PaymentsTransaction txn = paymentsTransactionRepository
-                    .findTopByTransactionTokenOrderByCreatedAtDesc(token)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid token"));
+            // ==============================
+            // 3. Update MasterTransaction
+            // ==============================
 
-            // ---------------------------
-            // UPDATE REQUEST METADATA
-            // ---------------------------
-            ObjectMapper mapper = new ObjectMapper();
-            String reqJson = mapper.writeValueAsString(request);
+            MasterTransaction masterTxn = masterTransactionRepository
+                    .findByTransactionToken(token)
+                            .orElseThrow(() -> new IllegalArgumentException("Token not found"));
 
-            txn.setRequestMetadata(reqJson);
-            txn.setCustEmail(custEmail);
-            txn.setCustMobile(custMobile);
-            txn.setClientId(clientIdFromProfile);
-            txn.setUdf1(txn.getId()); // Saving UUID in udf1 (correct)
+            BigDecimal amount = BigDecimal.valueOf(
+                    request.getPayInstrument().getPayDetails().getAmount()
+            );
 
-            paymentsTransactionRepository.save(txn);   // <-- THIS IS UPDATE
+            masterTxn.setAmountRequested(amount);
+            masterTxn.setStatus(TransactionStatus.INITIATED);
+            masterTransactionRepository.save(masterTxn);
 
 
-            // ---------------------------
-            // Encrypt and call NDPS
-            // ---------------------------
+            // ==============================
+            // 4. Replace credentials in request
+            // ==============================
+            request.getPayInstrument().getMerchDetails().setUserId(nttUserId);
+            request.getPayInstrument().getMerchDetails().setMerchId(nttMerchantId);
+            request.getPayInstrument().getMerchDetails().setPassword(nttPassword);
+
+            String requestJson = objectMapper.writeValueAsString(request);
+            log.info("Request with NTT credentials:\n{}",
+                    objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(request));
+
+            // ==============================
+            // 5. Save to NttTransaction (trigger will parse)
+            // ==============================
+            NttTransaction nttTxn = NttTransaction.builder()
+                    .masterTransactionId(masterTxn.getId())
+                    .requestPayload(requestJson)
+                    .build();
+
+            nttTransactionRepository.save(nttTxn);
+            log.info("NTT transaction created: ID={} (trigger will populate columns)", nttTxn.getId());
+
+
+
+            // ==============================
+            // 6. Call NTT Data API
+            // ==============================
+
             String encData = nttCrypto.encryptRequest(request);
 
             String form = "encData=" + URLEncoder.encode(encData, StandardCharsets.UTF_8)
@@ -189,24 +211,47 @@ public class TransactionService {
                     authUrl, HttpMethod.POST, new HttpEntity<>(form, headers), String.class);
 
             if (response.getBody() == null || !response.getBody().contains("encData=")) {
-                log.info("respose from ndps : {}",response.getBody());
-                return null;
+                log.error("Invalid response from NTT Data: {}", response.getBody());
+
+                // Update status to failed
+                masterTxn.setStatus(TransactionStatus.FAILED);
+                masterTransactionRepository.save(masterTxn);
+
+                throw new RuntimeException("Invalid response from payment gateway");
             }
 
-            String encryptedResponse =
-                    response.getBody().substring(response.getBody().indexOf("encData=") + 8);
 
-            TransactionSuccessResponse decrypted =
-                    nttCrypto.decryptResponse(encryptedResponse, TransactionSuccessResponse.class);
-            String decryptedJson= objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(decrypted);
+            // ==============================
+            // 7. Decrypt response
+            // ==============================
 
-            log.info("Valid response from nttdata : {}",decryptedJson);
+            String encryptedResponse = response.getBody()
+                    .substring(response.getBody().indexOf("encData=") + 8);
 
-            // ---------------------------
-            // UPDATE RESPONSE METADATA
-            // ---------------------------
-            txn.setResponseMetadata(mapper.writeValueAsString(decrypted));
-            paymentsTransactionRepository.save(txn);   // <-- UPDATE AGAIN
+            TransactionSuccessResponse decrypted = nttCrypto.decryptResponse(
+                    encryptedResponse,
+                    TransactionSuccessResponse.class
+            );
+
+            log.info("NTT Data response:\n{}",
+                    objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(decrypted));
+
+
+            // ==============================
+            // 8. Update response payload
+            // ==============================
+
+
+            String responseJson = objectMapper.writeValueAsString(decrypted);
+            nttTxn.setResponsePayload(responseJson);
+            nttTransactionRepository.save(nttTxn);
+
+            // Update master status to pending (user redirected)
+            masterTxn.setStatus(TransactionStatus.PENDING);
+            masterTransactionRepository.save(masterTxn);
+
+            log.info("Payment initiated successfully. Master ID: {}, NTT ID: {}",
+                    masterTxn.getId(), nttTxn.getId());
 
             return decrypted;
 
