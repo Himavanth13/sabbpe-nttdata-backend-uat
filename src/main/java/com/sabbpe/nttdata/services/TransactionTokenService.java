@@ -1,16 +1,23 @@
 package com.sabbpe.nttdata.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sabbpe.nttdata.models.PaymentsTransaction;
-import com.sabbpe.nttdata.repositories.PaymentsTransactionRepository;
+import com.sabbpe.nttdata.dtos.TokenGenerationRequest;
+import com.sabbpe.nttdata.dtos.TokenGenerationResponse;
+import com.sabbpe.nttdata.enums.TransactionStatus;
+import com.sabbpe.nttdata.models.MasterTransaction;
+import com.sabbpe.nttdata.repositories.MasterTransactionRepository;
+import com.sabbpe.nttdata.repositories.NttTransactionRepository;
 import com.sabbpe.nttdata.utils.AESUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,55 +25,69 @@ import java.util.Map;
 public class TransactionTokenService {
 
     private final ClientProfileService clientProfileService;
-    private final PaymentsTransactionRepository paymentsTransactionRepository;
+    private final NttTransactionRepository nttTransactionRepository;
+    private final MasterTransactionRepository masterTransactionRepository;
+    private final ObjectMapper objectMapper;
 
     private static final DateTimeFormatter TS_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public String encryptTransaction(
-            Map<String,Object> body,
-            String transactionUserId,
-            String transactionMerchantId,   // <-- merchTxnId
-            String clientId,
-            String transactionTimestamp
-    ) throws Exception {
+    private static final int TOKEN_VALIDITY_MINUTES = 15;
 
-        Map<String, Object> keys =
-                clientProfileService.getKeys(transactionUserId, transactionMerchantId);
+    @Transactional
+    public TokenGenerationResponse generateToken(TokenGenerationRequest request) throws Exception {
+
+        Map<String, Object> keys = clientProfileService.getKeys(
+                request.getTransactionUserId(),
+                request.getTransactionMerchantId()
+        );
 
         if (keys == null || keys.isEmpty()) {
-            throw new IllegalStateException("No client_profile crypto keys found for given user/merchant");
+            throw new IllegalStateException("No client_profile crypto keys found");
         }
 
-        String aesKey    = String.valueOf(keys.get("transactionAesKey"));
-        String aesIv     = String.valueOf(keys.get("transactionIv"));
-        String password  = String.valueOf(keys.get("transactionPassword"));
-        log.info("key to encrypt : {}",aesKey);
-        log.info("iv to encrypt : {}",aesIv);
-        LocalDateTime ldt = LocalDateTime.parse(transactionTimestamp, TS_FORMATTER);
+        String aesKey = String.valueOf(keys.get("transactionAesKey"));
+        String aesIv = String.valueOf(keys.get("transactionIv"));
+        String password = String.valueOf(keys.get("transactionPassword"));
+
+        LocalDateTime ldt = LocalDateTime.parse(request.getTransactionTimestamp(), TS_FORMATTER);
         String normalizedTs = ldt.format(TS_FORMATTER);
 
-        // RAW STRING MUST MATCH VALIDATOR
-        String raw = transactionUserId + transactionMerchantId + password + normalizedTs;
+        String raw = request.getTransactionUserId()
+                + request.getTransactionMerchantId()
+                + password
+                + normalizedTs;
 
-        // Encrypt token
         String encryptedToken = AESUtil.encrypt(raw, aesKey, aesIv);
 
-        body.put("transaction_token",encryptedToken);
-        // -------------------------------
-        // SAVE INTO payments_transactions
-        // -------------------------------
-        PaymentsTransaction txn = new PaymentsTransaction();
+        String internalTxnRef = "TXN"
+                + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
-        txn.setRequestMetadata(new ObjectMapper().writeValueAsString(body));
+        MasterTransaction masterTxn = MasterTransaction.builder()
+                .orderReference(internalTxnRef)
+                .transactionToken(encryptedToken)
+                .transactionTimestamp(ldt)
+                .transactionUserId(request.getTransactionUserId())
+                .transactionMerchantId(request.getTransactionMerchantId())
+                .clientId(request.getClientId())
+                .amountRequested(BigDecimal.ZERO)
+                .amountFinal(null)
+                .currency("INR")
+                .status(TransactionStatus.TOKEN_GENERATED)
+                .processor("NTTDATA")
+                .build();
 
-        paymentsTransactionRepository.save(txn);
+        MasterTransaction savedMasterTxn = masterTransactionRepository.save(masterTxn);
 
+        log.info("Token generated for client: {}, transaction ID: {}",
+                request.getClientId(), masterTxn.getId());
 
-
-        log.info("generate token request payload : {}",
-                new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(body));
-        log.info("data : {}",txn);
-        return encryptedToken;
+        return TokenGenerationResponse.builder()
+                .transactionToken(encryptedToken)
+                .transactionId(savedMasterTxn.getId())
+                .expiresAt(ldt.plusMinutes(TOKEN_VALIDITY_MINUTES))
+                .status("success")
+                .build();
     }
 }

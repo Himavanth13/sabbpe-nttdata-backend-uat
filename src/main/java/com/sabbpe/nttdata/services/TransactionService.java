@@ -37,6 +37,7 @@ public class TransactionService {
 
     @Value("${ndps.merch-id}")
     private String merchId;
+
     @Value("${ndps.password}")
     private String password;
 
