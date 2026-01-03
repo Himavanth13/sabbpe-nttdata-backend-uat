@@ -17,7 +17,7 @@ public class TokenGenerationRequest {
     private String transactionMerchantId;
 
     @NotBlank(message = "Client ID is required")
-    @JsonProperty("client_id")
+    @JsonProperty("client_Id")
     private String clientId;
 
     @NotBlank(message = "Transaction timestamp is required")

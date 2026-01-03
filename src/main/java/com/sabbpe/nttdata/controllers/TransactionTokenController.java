@@ -1,7 +1,6 @@
 package com.sabbpe.nttdata.controllers;
 
 import com.sabbpe.nttdata.dtos.TokenGenerationRequest;
-import com.sabbpe.nttdata.dtos.TokenGenerationResponse;
 import com.sabbpe.nttdata.services.TransactionTokenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +17,13 @@ public class TransactionTokenController {
     private final TransactionTokenService transactionTokenService;
 
     @PostMapping("/PaymentGenerateToken")
-    public ResponseEntity<TokenGenerationResponse> generateToken(
+    public ResponseEntity<String> generateToken(
             @RequestBody @Valid TokenGenerationRequest request) throws Exception {
 
         log.info("Token generation request for client: {}", request.getClientId());
 
-        TokenGenerationResponse response = transactionTokenService.generateToken(request);
+        String token = transactionTokenService.generateToken(request);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(token);
     }
 }

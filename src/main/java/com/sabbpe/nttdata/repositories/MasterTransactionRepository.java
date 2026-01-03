@@ -14,4 +14,5 @@ public interface MasterTransactionRepository extends JpaRepository<MasterTransac
     Optional<MasterTransaction> findByOrderReference(String orderReference);
 
     boolean existsByTransactionToken(String transactionToken);
+
 }

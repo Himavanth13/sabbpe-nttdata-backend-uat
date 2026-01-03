@@ -19,7 +19,7 @@ public class TransactionCallbackUATController {
     @PostMapping("/payment/callback")
         public String handleCallback(@RequestParam("encData") String encData) {
 
-        return transactionCallbackService.callback(encData);
+        return transactionCallbackService.processCallback(encData);
 
     }
 

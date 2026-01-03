@@ -134,6 +134,8 @@ public class TransactionService {
             Map<String, Object> nttMapping =
                     clientProfileService.getNttMappingByCustomer(custEmail, custMobile);
 
+            log.info("NTT Mapping result: {}", nttMapping);
+
             if (nttMapping == null || nttMapping.isEmpty()) {
                 throw new IllegalArgumentException("Customer not mapped to client_profile");
             }

@@ -1,7 +1,6 @@
 package com.sabbpe.nttdata.services;
 
 import com.sabbpe.nttdata.dtos.TokenGenerationRequest;
-import com.sabbpe.nttdata.dtos.TokenGenerationResponse;
 import com.sabbpe.nttdata.enums.TransactionStatus;
 import com.sabbpe.nttdata.models.MasterTransaction;
 import com.sabbpe.nttdata.repositories.MasterTransactionRepository;
@@ -35,7 +34,7 @@ public class TransactionTokenService {
     private static final int TOKEN_VALIDITY_MINUTES = 15;
 
     @Transactional
-    public TokenGenerationResponse generateToken(TokenGenerationRequest request) throws Exception {
+    public String generateToken(TokenGenerationRequest request) throws Exception {
 
         Map<String, Object> keys = clientProfileService.getKeys(
                 request.getTransactionUserId(),
@@ -83,11 +82,6 @@ public class TransactionTokenService {
         log.info("Token generated for client: {}, transaction ID: {}",
                 request.getClientId(), masterTxn.getId());
 
-        return TokenGenerationResponse.builder()
-                .transactionToken(encryptedToken)
-                .transactionId(savedMasterTxn.getId())
-                .expiresAt(ldt.plusMinutes(TOKEN_VALIDITY_MINUTES))
-                .status("success")
-                .build();
+        return encryptedToken;
     }
 }
