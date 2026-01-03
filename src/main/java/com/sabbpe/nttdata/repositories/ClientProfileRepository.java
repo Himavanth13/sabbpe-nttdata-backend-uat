@@ -53,4 +53,21 @@ public interface ClientProfileRepository extends JpaRepository<ClientProfile, St
             @Param("email") String email,
             @Param("mobile") String mobile
     );
+
+    @Query(value = """
+    SELECT
+        ctp.client_id as clientId,
+        ctp.easebuzz_key as easebuzzKey,
+        ctp.easebuzz_salt as easebuzzSalt
+    FROM client_transaction_profile ctp
+    JOIN client_profile cp ON ctp.client_id = cp.client_id
+    WHERE cp.client_email = :email
+      AND cp.client_mobile = :mobile
+    LIMIT 1
+    """, nativeQuery = true)
+    Map<String, Object> findEasebuzzMappingByCustomer(
+            @Param("email") String email,
+            @Param("mobile") String mobile
+    );
+
 }

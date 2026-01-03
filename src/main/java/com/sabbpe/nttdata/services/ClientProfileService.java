@@ -24,4 +24,8 @@ public class ClientProfileService {
         return clientProfileRepository.findNttMappingByCustomer(custEmail, custMobile);
     }
 
+    public Map<String, Object> getEasebuzzMappingByCustomer(String custEmail, String custMobile) {
+        return clientProfileRepository.findEasebuzzMappingByCustomer(custEmail, custMobile);
+    }
+
 }
