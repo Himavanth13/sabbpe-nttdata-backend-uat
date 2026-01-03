@@ -67,6 +67,10 @@ public class TransactionService {
             throw new IllegalArgumentException("Token does not belong to this client");
         }
 
+        if (!masterTxn.getProcessor().equalsIgnoreCase("NTTDATA")) {
+            throw new IllegalArgumentException("Token is not for NTTDATA processor");
+        }
+
         Map<String, Object> crypto = clientProfileService.getCryptoByClientId(clientId);
 
         if (crypto == null || crypto.isEmpty()) {
@@ -78,6 +82,7 @@ public class TransactionService {
         String aesKey = String.valueOf(crypto.get("transactionAesKey"));
         String aesIv = String.valueOf(crypto.get("transactionIv"));
         String transactionMerchantId = String.valueOf(crypto.get("transactionMerchantId"));
+        String processor = String.valueOf(crypto.get("processor"));
 
         log.info("key to decrypt : {}",aesKey);
         log.info("iv to decrypt : {}",aesIv);
@@ -96,7 +101,8 @@ public class TransactionService {
         String expectedRaw = transactionUserId
                 + transactionMerchantId
                 + transactionPassword
-                + ts.format(TS_FORMATTER);
+                + ts.format(TS_FORMATTER)
+                + masterTxn.getProcessor();
 
         String decryptedRaw = AESUtil.decrypt(token, aesKey, aesIv);
 
@@ -134,7 +140,6 @@ public class TransactionService {
             Map<String, Object> nttMapping =
                     clientProfileService.getNttMappingByCustomer(custEmail, custMobile);
 
-            log.info("NTT Mapping result: {}", nttMapping);
 
             if (nttMapping == null || nttMapping.isEmpty()) {
                 throw new IllegalArgumentException("Customer not mapped to client_profile");

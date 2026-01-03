@@ -27,4 +27,7 @@ public class TokenGenerationRequest {
     )
     @JsonProperty("transaction_timestamp")
     private String transactionTimestamp;
+
+    @NotBlank(message = "Processor is required")
+    private String processor;
 }

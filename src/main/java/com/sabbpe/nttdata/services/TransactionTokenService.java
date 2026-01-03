@@ -13,28 +13,35 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class TransactionTokenService {
 
     private final ClientProfileService clientProfileService;
-    private final NttTransactionRepository nttTransactionRepository;
     private final MasterTransactionRepository masterTransactionRepository;
-    private final ObjectMapper objectMapper;
 
     private static final DateTimeFormatter TS_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    private static final int TOKEN_VALIDITY_MINUTES = 15;
-
     @Transactional
     public String generateToken(TokenGenerationRequest request) throws Exception {
+
+        String processor = request.getProcessor();
+
+        if (processor == null || processor.isBlank()) {
+            throw new IllegalArgumentException("Processor is required");
+        }
+
+        if (!processor.equalsIgnoreCase("NTTDATA") && !processor.equalsIgnoreCase("EASEBUZZ")) {
+            throw new IllegalArgumentException("Invalid processor. Must be NTTDATA or EASEBUZZ");
+        }
 
         Map<String, Object> keys = clientProfileService.getKeys(
                 request.getTransactionUserId(),
@@ -52,10 +59,27 @@ public class TransactionTokenService {
         LocalDateTime ldt = LocalDateTime.parse(request.getTransactionTimestamp(), TS_FORMATTER);
         String normalizedTs = ldt.format(TS_FORMATTER);
 
+        Optional<MasterTransaction> existingTxn = masterTransactionRepository
+                .findLatestByClientIdAndTransactionTimestampAndProcessor(request.getClientId(), ldt, processor.toUpperCase());
+
+        if (existingTxn.isPresent()) {
+            MasterTransaction existing = existingTxn.get();
+
+            long minutesPassed = Duration.between(ldt, LocalDateTime.now()).toMinutes();
+
+            if (minutesPassed < 15) {
+                log.warn("⚠️ Token already exists | Returning existing token");
+                return existing.getTransactionToken();
+            } else {
+                log.info("🔄 Existing token expired, generating new one");
+            }
+        }
+
         String raw = request.getTransactionUserId()
                 + request.getTransactionMerchantId()
                 + password
-                + normalizedTs;
+                + normalizedTs
+                + processor.toUpperCase();
 
         String encryptedToken = AESUtil.encrypt(raw, aesKey, aesIv);
 
@@ -74,13 +98,13 @@ public class TransactionTokenService {
                 .amountFinal(null)
                 .currency("INR")
                 .status(TransactionStatus.TOKEN_GENERATED)
-                .processor("NTTDATA")
+                .processor(processor)
                 .build();
 
-        MasterTransaction savedMasterTxn = masterTransactionRepository.save(masterTxn);
+        masterTransactionRepository.save(masterTxn);
 
-        log.info("Token generated for client: {}, transaction ID: {}",
-                request.getClientId(), masterTxn.getId());
+        log.info("✅ Token generated | Client: {} | Processor: {} | Ref: {}",
+                request.getClientId(), processor, internalTxnRef);
 
         return encryptedToken;
     }
