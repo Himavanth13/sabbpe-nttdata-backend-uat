@@ -258,6 +258,11 @@ public class EasebuzzCallbackService {
             String status,
             String error) {
 
+        if(frontendUrl == null || frontendUrl.isEmpty()){
+            frontendUrl = "https://giftvouchersuat.sabbpe.com";
+            log.info(" Using default frontend url");
+        }
+
         // Clean trailing slash
         if (frontendUrl.endsWith("/")) {
             frontendUrl = frontendUrl.substring(0, frontendUrl.length() - 1);
