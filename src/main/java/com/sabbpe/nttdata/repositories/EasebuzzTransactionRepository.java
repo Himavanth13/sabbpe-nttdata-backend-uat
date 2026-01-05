@@ -16,4 +16,6 @@ public interface EasebuzzTransactionRepository
     );
 
     Optional<EasebuzzTransaction> findByMasterTransactionId(String masterTransactionId);
+
+    Optional<EasebuzzTransaction> findByTxnid(String txnid);
 }

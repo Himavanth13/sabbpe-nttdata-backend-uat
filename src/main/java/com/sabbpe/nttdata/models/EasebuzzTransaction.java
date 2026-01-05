@@ -2,6 +2,8 @@ package com.sabbpe.nttdata.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -12,6 +14,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@DynamicInsert
+@DynamicUpdate
 public class EasebuzzTransaction {
 
     @Id
@@ -170,6 +174,9 @@ public class EasebuzzTransaction {
 
     @Column(name = "added_on")
     private LocalDateTime addedOn;
+
+    @Column(name = "frontend_url", length = 500)
+    private String frontendUrl;
 
     // JSON Payloads
     @Column(name = "request_payload", columnDefinition = "LONGTEXT")

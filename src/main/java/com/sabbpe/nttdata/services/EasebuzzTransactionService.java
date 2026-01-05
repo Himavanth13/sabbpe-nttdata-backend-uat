@@ -151,6 +151,10 @@ public class EasebuzzTransactionService {
 
                 MasterTransaction masterTxn = validateToken(token);
 
+                String frontendUrl = request.getUdf2();
+
+                request.setUdf2("");
+
                 Optional<EasebuzzTransaction> existingPayment = easebuzzTransactionRepository
                         .findByMasterTransactionIdAndStatus(
                                 masterTxn.getId(),
@@ -299,10 +303,12 @@ public class EasebuzzTransactionService {
 
                 EasebuzzTransaction easebuzzTxn = EasebuzzTransaction.builder()
                         .masterTransactionId(masterTxn.getId())
+                        .frontendUrl(frontendUrl)
                         .requestPayload(requestJson)
                         .build();
 
-                easebuzzTransactionRepository.save(easebuzzTxn);
+
+                easebuzzTransactionRepository.saveAndFlush(easebuzzTxn);
                 log.info(" Easebuzz transaction saved: ID={}", easebuzzTxn.getId());
 
                 // ==============================
@@ -345,7 +351,7 @@ public class EasebuzzTransactionService {
 
                     Map<String, Object> cleanResponse = Map.of(
                             "paymentUrl", paymentUrl,
-                            "status", "success",
+                            "status", "INITIATED",
                             "message", "Payment initiated successfully",
                             "accessKey", accessKey,
                             "txnid", request.getTxnid(),
