@@ -59,7 +59,7 @@ public class EasebuzzCallbackService {
 
             log.info(" Found master transaction: {}", masterTxn.getId());
 
-            frontendUrl = payload.getOrDefault("udf2", "http://localhost:5173");
+            frontendUrl = payload.get("frontendUrl");
 
             // Step 4: Check idempotency - prevent duplicate processing
             if (isCallbackAlreadyProcessed(masterTxn)) {
@@ -257,12 +257,6 @@ public class EasebuzzCallbackService {
             String encryptedOrderNumber,
             String status,
             String error) {
-
-        // Default frontend URL if missing
-        if (frontendUrl == null || frontendUrl.isBlank()) {
-            frontendUrl = "http://localhost:5173";
-            log.warn(" Using default frontend URL: {}", frontendUrl);
-        }
 
         // Clean trailing slash
         if (frontendUrl.endsWith("/")) {
