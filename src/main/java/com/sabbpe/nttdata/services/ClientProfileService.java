@@ -20,10 +20,12 @@ public class ClientProfileService {
         return clientProfileRepository.getCryptoByClientId(clientId);
     }
 
-    // 🔹 NEW: NTTDATA mapping lookup for a customer
-
     public Map<String, Object> getNttMappingByCustomer(String custEmail, String custMobile) {
         return clientProfileRepository.findNttMappingByCustomer(custEmail, custMobile);
+    }
+
+    public Map<String, Object> getEasebuzzMappingByCustomer(String custEmail, String custMobile) {
+        return clientProfileRepository.findEasebuzzMappingByCustomer(custEmail, custMobile);
     }
 
 }
