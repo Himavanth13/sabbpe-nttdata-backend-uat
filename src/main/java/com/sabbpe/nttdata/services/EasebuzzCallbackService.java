@@ -59,7 +59,14 @@ public class EasebuzzCallbackService {
 
             log.info(" Found master transaction: {}", masterTxn.getId());
 
-            frontendUrl = payload.get("frontendUrl");
+            EasebuzzTransaction easebuzzTxn = easebuzzTransactionRepository
+                    .findByMasterTransactionId(masterTxn.getId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Easebuzz transaction not found for master txn: " + masterTxn.getId()
+                    ));
+
+            frontendUrl = easebuzzTxn.getFrontendUrl();
+            log.info(" Frontend URL from database: {}", frontendUrl);
 
             // Step 4: Check idempotency - prevent duplicate processing
             if (isCallbackAlreadyProcessed(masterTxn)) {
@@ -257,11 +264,6 @@ public class EasebuzzCallbackService {
             String encryptedOrderNumber,
             String status,
             String error) {
-
-        if(frontendUrl == null || frontendUrl.isEmpty()){
-            frontendUrl = "https://giftvouchersuat.sabbpe.com";
-            log.info(" Using default frontend url");
-        }
 
         // Clean trailing slash
         if (frontendUrl.endsWith("/")) {
