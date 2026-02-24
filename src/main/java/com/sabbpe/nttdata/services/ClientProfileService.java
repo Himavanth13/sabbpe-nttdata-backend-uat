@@ -20,12 +20,15 @@ public class ClientProfileService {
         return clientProfileRepository.getCryptoByClientId(clientId);
     }
 
-    public Map<String, Object> getNttMappingByCustomer(String custEmail, String custMobile) {
-        return clientProfileRepository.findNttMappingByCustomer(custEmail, custMobile);
-    }
+    
 
     public Map<String, Object> getEasebuzzMappingByCustomer(String custEmail, String custMobile) {
         return clientProfileRepository.findEasebuzzMappingByCustomer(custEmail, custMobile);
     }
+    // ...existing code...
+public Map<String, Object> getNttMappingByCustomer(String email, String mobile) {
+    return clientProfileRepository.findNttMappingByCustomer(email, mobile);
+}
+// ...existing code...
 
 }

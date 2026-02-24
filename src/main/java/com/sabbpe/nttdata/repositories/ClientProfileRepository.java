@@ -38,13 +38,12 @@ public interface ClientProfileRepository extends JpaRepository<ClientProfile, St
     Map<String, Object> getCryptoByClientId(@Param("clientId") String clientId);
 
     @Query(value = """
-    SELECT
-        ctp.client_id as clientId,
-        ctp.ntt_userid as nttUserId,
-        ctp.ntt_password as nttPassword,
-        ctp.ntt_merchantid as nttMerchantId
-        FROM client_transaction_profile ctp
-        JOIN client_profile cp ON ctp.client_id = cp.client_id
+        SELECT
+            cp.client_id        AS clientId,
+            cp.ntt_userid       AS nttUserId,
+            cp.ntt_password     AS nttPassword,
+            cp.ntt_merchantid   AS nttMerchantId
+        FROM client_profile cp
         WHERE cp.client_email = :email
           AND cp.client_mobile = :mobile
         LIMIT 1
@@ -55,19 +54,18 @@ public interface ClientProfileRepository extends JpaRepository<ClientProfile, St
     );
 
     @Query(value = """
-    SELECT
-        ctp.client_id as clientId,
-        ctp.easebuzz_key as easebuzzKey,
-        ctp.easebuzz_salt as easebuzzSalt
-    FROM client_transaction_profile ctp
-    JOIN client_profile cp ON ctp.client_id = cp.client_id
-    WHERE cp.client_email = :email
-      AND cp.client_mobile = :mobile
-    LIMIT 1
-    """, nativeQuery = true)
+        SELECT
+            ctp.client_id as clientId,
+            ctp.easebuzz_key as easebuzzKey,
+            ctp.easebuzz_salt as easebuzzSalt
+        FROM client_transaction_profile ctp
+        JOIN client_profile cp ON ctp.client_id = cp.client_id
+        WHERE cp.client_email = :email
+          AND cp.client_mobile = :mobile
+        LIMIT 1
+        """, nativeQuery = true)
     Map<String, Object> findEasebuzzMappingByCustomer(
             @Param("email") String email,
             @Param("mobile") String mobile
     );
-
 }
